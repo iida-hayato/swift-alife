@@ -32,7 +32,7 @@ class GameController: NSObject, SCNSceneRendererDelegate {
     super.init()
 
     sceneRenderer.delegate = self
-    let world = World()
+    let world = SKScene(fileNamed: "World")! as! World
     worlds.append(world)
     scene.rootNode.addChildNode(world.hudNode)
     world.start()
@@ -45,9 +45,21 @@ class GameController: NSObject, SCNSceneRendererDelegate {
 
 }
 
-class World {
-  let skScene: SKScene
-  let hudNode: SCNNode
+class World:SKScene {
+  var hudNode: SCNNode {
+    let plane = SCNPlane(width:5,height:5)
+    let material = SCNMaterial()
+    material.lightingModel = SCNMaterial.LightingModel.constant
+    material.isDoubleSided = true
+    material.diffuse.contents = self
+    plane.materials = [material]
+
+    let hudNode = SCNNode(geometry: plane)
+    hudNode.name = "HUD"
+    hudNode.rotation = SCNVector4(x: 1, y: 0, z: 0, w: 3.14159265)
+    hudNode.position = SCNVector3(x:0, y: 0.5, z: -5)
+    return hudNode
+  }
 
   struct PhysicsCategory {
     static let None:        UInt32 = 0      //  0
@@ -56,40 +68,22 @@ class World {
     static let Ball:        UInt32 = 0b100  //  4
   }
 
-  init() {
-    skScene = SKScene(fileNamed: "World.sks")!
-    //create a plane to put the skScene on
-    let plane = SCNPlane(width:5,height:5)
-    let material = SCNMaterial()
-    material.lightingModel = SCNMaterial.LightingModel.constant
-    material.isDoubleSided = true
-    material.diffuse.contents = skScene
-    plane.materials = [material]
-
-    //Add plane to a node, and node to the SCNScene
-    hudNode = SCNNode(geometry: plane)
-    hudNode.name = "HUD"
-    hudNode.rotation = SCNVector4(x: 1, y: 0, z: 0, w: 3.14159265)
-    hudNode.position = SCNVector3(x:0, y: 0.5, z: -5)
-  }
-
 
   func start(){
     let w:CGFloat = 10
 
     let edge = SKNode()
-    edge.physicsBody = SKPhysicsBody(edgeLoopFrom: self.skScene.frame)
+    edge.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
     edge.physicsBody!.usesPreciseCollisionDetection = true
     edge.physicsBody!.categoryBitMask = PhysicsCategory.Edge
-    self.skScene.addChild(edge)
+    addChild(edge)
 
 
-    //    let firstNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w *
     let ball = SKShapeNode.init(circleOfRadius: w)
     ball.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
     ball.physicsBody?.applyForce(CGVector.init(dx: 10, dy: 0))
-    self.skScene.addChild(ball)
-    self.skScene.isPaused = false
+    addChild(ball)
+    isPaused = false
 
   }
 }
