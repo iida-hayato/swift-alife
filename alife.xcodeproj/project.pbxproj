@@ -20,6 +20,8 @@
 		0BDC806621DE515700C0D8F9 /* Art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC804121DE515500C0D8F9 /* Art.scnassets */; };
 		0BDC806721DE515700C0D8F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC804221DE515700C0D8F9 /* Assets.xcassets */; };
 		0BDC806821DE515700C0D8F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC804221DE515700C0D8F9 /* Assets.xcassets */; };
+		0BDC807221DE564200C0D8F9 /* World.sks in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC807121DE564200C0D8F9 /* World.sks */; };
+		0BDC807321DE5DD200C0D8F9 /* World.sks in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC807121DE564200C0D8F9 /* World.sks */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +39,7 @@
 		0BDC805D21DE515700C0D8F9 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		0BDC806021DE515700C0D8F9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		0BDC806221DE515700C0D8F9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0BDC807121DE564200C0D8F9 /* World.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = World.sks; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				0BDC804021DE515500C0D8F9 /* GameController.swift */,
+				0BDC807121DE564200C0D8F9 /* World.sks */,
 				0BDC804121DE515500C0D8F9 /* Art.scnassets */,
 				0BDC804221DE515700C0D8F9 /* Assets.xcassets */,
 			);
@@ -192,6 +196,7 @@
 				0BDC805321DE515700C0D8F9 /* LaunchScreen.storyboard in Resources */,
 				0BDC806721DE515700C0D8F9 /* Assets.xcassets in Resources */,
 				0BDC806521DE515700C0D8F9 /* Art.scnassets in Resources */,
+				0BDC807221DE564200C0D8F9 /* World.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,6 +204,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0BDC807321DE5DD200C0D8F9 /* World.sks in Resources */,
 				0BDC806121DE515700C0D8F9 /* Main.storyboard in Resources */,
 				0BDC806821DE515700C0D8F9 /* Assets.xcassets in Resources */,
 				0BDC806621DE515700C0D8F9 /* Art.scnassets in Resources */,

@@ -7,6 +7,7 @@
 //
 
 import SceneKit
+import SpriteKit
 
 #if os(watchOS)
 import WatchKit
@@ -22,6 +23,7 @@ class GameController: NSObject, SCNSceneRendererDelegate {
 
   let scene: SCNScene
   let sceneRenderer: SCNSceneRenderer
+  var worlds:[World] = []
 
   init(sceneRenderer renderer: SCNSceneRenderer) {
     sceneRenderer = renderer
@@ -30,7 +32,9 @@ class GameController: NSObject, SCNSceneRendererDelegate {
     super.init()
 
     sceneRenderer.delegate = self
-
+    let world = World()
+    worlds.append(world)
+    scene.rootNode.addChildNode(world.hudNode)
     sceneRenderer.scene = scene
   }
 
@@ -38,4 +42,26 @@ class GameController: NSObject, SCNSceneRendererDelegate {
     // Called before each frame is rendered
   }
 
+}
+
+class World {
+  let skScene: SKScene
+  let hudNode: SCNNode
+
+  init() {
+    skScene = SKScene(fileNamed: "World.sks")!
+    //create a plane to put the skScene on
+    let plane = SCNPlane(width:5,height:0.5)
+    let material = SCNMaterial()
+    material.lightingModel = SCNMaterial.LightingModel.constant
+    material.isDoubleSided = true
+    material.diffuse.contents = skScene
+    plane.materials = [material]
+
+    //Add plane to a node, and node to the SCNScene
+    hudNode = SCNNode(geometry: plane)
+    hudNode.name = "HUD"
+    hudNode.rotation = SCNVector4(x: 1, y: 0, z: 0, w: 3.14159265)
+    hudNode.position = SCNVector3(x:0, y: 0, z: 0)
+  }
 }
