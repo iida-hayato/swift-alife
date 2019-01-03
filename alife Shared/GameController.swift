@@ -35,6 +35,7 @@ class GameController: NSObject, SCNSceneRendererDelegate {
     let world = World()
     worlds.append(world)
     scene.rootNode.addChildNode(world.hudNode)
+    world.start()
     sceneRenderer.scene = scene
   }
 
@@ -51,7 +52,7 @@ class World {
   init() {
     skScene = SKScene(fileNamed: "World.sks")!
     //create a plane to put the skScene on
-    let plane = SCNPlane(width:5,height:0.5)
+    let plane = SCNPlane(width:5,height:5)
     let material = SCNMaterial()
     material.lightingModel = SCNMaterial.LightingModel.constant
     material.isDoubleSided = true
@@ -63,5 +64,17 @@ class World {
     hudNode.name = "HUD"
     hudNode.rotation = SCNVector4(x: 1, y: 0, z: 0, w: 3.14159265)
     hudNode.position = SCNVector3(x:0, y: 0, z: 0)
+  }
+
+  var firstNode: SKShapeNode!
+
+  func start(){
+    let w:CGFloat = 100
+
+    //    let firstNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w *
+    firstNode = SKShapeNode.init(circleOfRadius: w)
+    firstNode.fillColor = NSColor.green
+    self.skScene.addChild(firstNode)
+
   }
 }
