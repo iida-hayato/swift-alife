@@ -77,6 +77,13 @@ class World {
   func start(){
     let w:CGFloat = 10
 
+    let edge = SKNode()
+    edge.physicsBody = SKPhysicsBody(edgeLoopFrom: self.skScene.frame)
+    edge.physicsBody!.usesPreciseCollisionDetection = true
+    edge.physicsBody!.categoryBitMask = PhysicsCategory.Edge
+    self.skScene.addChild(edge)
+
+
     //    let firstNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w *
     let ball = SKShapeNode.init(circleOfRadius: w)
     ball.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
