@@ -70,7 +70,7 @@ class World {
     hudNode = SCNNode(geometry: plane)
     hudNode.name = "HUD"
     hudNode.rotation = SCNVector4(x: 1, y: 0, z: 0, w: 3.14159265)
-    hudNode.position = SCNVector3(x:0, y: 0, z: 0)
+    hudNode.position = SCNVector3(x:0, y: 0.5, z: -5)
   }
 
 
