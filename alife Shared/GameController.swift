@@ -49,6 +49,13 @@ class World {
   let skScene: SKScene
   let hudNode: SCNNode
 
+  struct PhysicsCategory {
+    static let None:        UInt32 = 0      //  0
+    static let Edge:        UInt32 = 0b1    //  1
+    static let Paddle:      UInt32 = 0b10   //  2
+    static let Ball:        UInt32 = 0b100  //  4
+  }
+
   init() {
     skScene = SKScene(fileNamed: "World.sks")!
     //create a plane to put the skScene on
@@ -66,15 +73,16 @@ class World {
     hudNode.position = SCNVector3(x:0, y: 0, z: 0)
   }
 
-  var firstNode: SKShapeNode!
 
   func start(){
-    let w:CGFloat = 100
+    let w:CGFloat = 10
 
     //    let firstNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w *
-    firstNode = SKShapeNode.init(circleOfRadius: w)
-    firstNode.fillColor = NSColor.green
-    self.skScene.addChild(firstNode)
+    let ball = SKShapeNode.init(circleOfRadius: w)
+    ball.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
+    ball.physicsBody?.applyForce(CGVector.init(dx: 10, dy: 0))
+    self.skScene.addChild(ball)
+    self.skScene.isPaused = false
 
   }
 }
