@@ -45,7 +45,15 @@ class GameController: NSObject, SCNSceneRendererDelegate {
 
 }
 
+struct PhysicsCategory {
+  static let None:        UInt32 = 0      //  0
+  static let Edge:        UInt32 = 0b1    //  1
+  static let Bone:        UInt32 = 0b10   //  2
+  static let Cell:        UInt32 = 0b100  //  4
+}
+
 class World:SKScene {
+  var lives:[Life] = []
   var hudNode: SCNNode {
     let plane = SCNPlane(width:5,height:5)
     let material = SCNMaterial()
@@ -61,16 +69,7 @@ class World:SKScene {
     return hudNode
   }
 
-  struct PhysicsCategory {
-    static let None:        UInt32 = 0      //  0
-    static let Edge:        UInt32 = 0b1    //  1
-    static let Paddle:      UInt32 = 0b10   //  2
-    static let Ball:        UInt32 = 0b100  //  4
-  }
-
-
   func start(){
-    let w:CGFloat = 10
 
     let edge = SKNode()
     edge.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
@@ -78,12 +77,58 @@ class World:SKScene {
     edge.physicsBody!.categoryBitMask = PhysicsCategory.Edge
     addChild(edge)
 
-
-    let ball = SKShapeNode.init(circleOfRadius: w)
-    ball.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
-    ball.physicsBody?.applyForce(CGVector.init(dx: 10, dy: 0))
-    addChild(ball)
+    let life = Life(world: self)
+    addChild(life.cell)
     isPaused = false
+    lives.append(life)
 
+  }
+
+  override func update(_ currentTime: TimeInterval) {
+    lives.forEach({$0.update(currentTime)})
+  }
+}
+
+class Life{
+  let w:CGFloat = 10
+  let cell: SKShapeNode
+  let world: World
+  init(world: World) {
+    self.world = world
+    cell = SKShapeNode.init(circleOfRadius: w)
+    cell.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
+    cell.physicsBody!.categoryBitMask = PhysicsCategory.Cell
+    cell.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
+  }
+  let s:CGFloat = 2
+  var up = true
+  func update(_ currentTime:TimeInterval){
+    if(up) {
+      up = false
+      appendBone()
+    }
+  }
+  func appendBone() {
+    let size = CGSize(width: s, height: s * 30)
+    let position = CGPoint(x: cell.position.x - s/2, y: cell.position.y + w/2)
+    let bone = SKShapeNode.init(rect: CGRect(origin: position, size: size))
+    bone.physicsBody = SKPhysicsBody.init(rectangleOf: size, center: position)
+    bone.physicsBody!.categoryBitMask = PhysicsCategory.Bone
+    bone.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Bone
+    bone.fillColor = NSColor.gray
+    bone.zRotation = CGFloat.pi / 6 * 11
+    world.addChild(bone)
+
+    let joint = SKPhysicsJointPin.joint(withBodyA: cell.physicsBody!, bodyB: bone.physicsBody!,
+                                        anchor: CGPoint(x: cell.frame.midX, y: cell.frame.midY))
+    //回転の抵抗を設定する。
+    joint.frictionTorque = 0.5
+    //最小角度を30度に設定する。
+    joint.lowerAngleLimit = CGFloat.pi / 6
+    //最大角度を90度に設定する。
+    joint.upperAngleLimit = CGFloat.pi * 11 / 6
+    //回転角度の制限を有効にする。
+    joint.shouldEnableLimits = true
+    world.physicsWorld.add(joint)
   }
 }
