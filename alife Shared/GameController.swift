@@ -77,6 +77,9 @@ class World:SKScene {
     edge.physicsBody!.categoryBitMask = PhysicsCategory.Edge
     addChild(edge)
 
+    // DEBUG
+    physicsWorld.gravity = CGVector.zero
+
     let life = Life(world: self)
     addChild(life.cell)
     isPaused = false
@@ -95,8 +98,6 @@ class Life{
   let world: World
   init(world: World) {
     self.world = world
-    // DEBUG
-//    self.world.physicsWorld.gravity = CGVector.zero
     cell = SKShapeNode.init(circleOfRadius: w)
     cell.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
     cell.physicsBody!.categoryBitMask = PhysicsCategory.Cell
