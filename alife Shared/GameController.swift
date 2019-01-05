@@ -144,9 +144,7 @@ class Cell:SKShapeNode{
   func appendCell(rotate: CGFloat) {
     let length = cellRadius * 3
     let radius = CGFloat.pi / 3
-    let spawnPoint = {() -> CGPoint in
-      CGPoint(x: self.position.x - length * sin(radius * rotate) , y: self.position.y + length * cos(radius * rotate))
-    }()
+    let spawnPoint = CGPoint(x: self.position.x - length * sin(radius * rotate) , y: self.position.y + length * cos(radius * rotate))
 
     let childCell = Cell.init(circleOfRadius: cellRadius)
     childCell.position = spawnPoint
