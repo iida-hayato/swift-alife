@@ -92,7 +92,8 @@ class World:SKScene {
   }
 }
 
-let cellRadius:CGFloat = 1
+let cellRadius:CGFloat = 10
+
 class Life{
   let cell: Cell
   let world: World
@@ -118,7 +119,7 @@ class Cell:SKShapeNode{
   func setup(with world:World){
     self.world = world
     self.growth = { () in
-      self.appendCell(rotate: Int.random(in: 0...3))
+      self.appendCell(rotate:  CGFloat.random(in: 0...5))
       self.growth = {() in }
     }
 
@@ -140,21 +141,11 @@ class Cell:SKShapeNode{
     childCells.forEach{$0.update(currentTime)}
   }
 
-  func appendCell(rotate: Int) {
+  func appendCell(rotate: CGFloat) {
     let length = cellRadius * 3
+    let radius = CGFloat.pi / 3
     let spawnPoint = {() -> CGPoint in
-      switch rotate {
-      case 0:
-        return CGPoint(x: self.position.x, y: self.position.y + length )
-      case 1:
-        return CGPoint(x: self.position.x - length, y: self.position.y)
-      case 2:
-        return CGPoint(x: self.position.x, y: self.position.y - length )
-      case 3:
-        return CGPoint(x: self.position.x + length, y: self.position.y)
-      default:
-        return CGPoint(x: self.position.x, y: self.position.y)
-      }
+      CGPoint(x: self.position.x - length * sin(radius * rotate) , y: self.position.y + length * cos(radius * rotate))
     }()
 
     let childCell = Cell.init(circleOfRadius: cellRadius)
