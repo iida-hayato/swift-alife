@@ -92,54 +92,83 @@ class World:SKScene {
   }
 }
 
+let cellRadius:CGFloat = 1
 class Life{
-  let w:CGFloat = 10
-  let cell: SKShapeNode
+  let cell: Cell
   let world: World
   init(world: World) {
     self.world = world
-    cell = SKShapeNode.init(circleOfRadius: w)
-    cell.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
-    cell.physicsBody!.categoryBitMask = PhysicsCategory.Cell
-    cell.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
+    cell = Cell.init(circleOfRadius: cellRadius)
+    cell.setup(with: world)
   }
-  let s:CGFloat = 2
   var up = true
   func update(_ currentTime:TimeInterval){
-    if(up) {
-      up = false
-      appendBone(rotate: 0)
-      appendBone(rotate: 1)
-      appendBone(rotate: 2)
-      appendBone(rotate: 3)
-      appendBone(rotate: 4)
-      appendBone(rotate: 5)
-    }
+    cell.update(currentTime)
   }
-  func appendBone(rotate: CGFloat) {
-    let size = CGSize(width: s, height: s * 30)
-    let diffX = -s/2
-    let diffY = w * 3
+}
 
-    let position = CGPoint(x: cell.position.x + diffX, y: cell.position.y + diffY)
-    let bone = SKShapeNode.init(rect: CGRect(origin: position, size: size))
-    bone.physicsBody = SKPhysicsBody.init(rectangleOf: size, center: position)
-    bone.physicsBody!.categoryBitMask = PhysicsCategory.Bone
-    bone.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Bone
-    bone.fillColor = NSColor.gray
-    bone.zRotation = CGFloat.pi / 3 * rotate
-    world.addChild(bone)
+class Cell:SKShapeNode{
+  var joints:[SKPhysicsJoint] = []
+  var energy = 0
+  var childCells:[Cell] = []
+  let growthEnergy = 10
+  var world: World!
+  var growth: () -> () = {() in  }
 
-    let joint = SKPhysicsJointPin.joint(withBodyA: cell.physicsBody!, bodyB: bone.physicsBody!,
-                                        anchor: bone.position)
-    //回転の抵抗を設定する。
-    joint.frictionTorque = 0.5
-    //最小角度を30度に設定する。
-    joint.lowerAngleLimit = CGFloat.pi / 6
-    //最大角度を90度に設定する。
-    joint.upperAngleLimit = CGFloat.pi * 11 / 6
-    //回転角度の制限を有効にする。
-    joint.shouldEnableLimits = true
+  func setup(with world:World){
+    self.world = world
+    self.growth = { () in
+      self.appendCell(rotate: Int.random(in: 0...3))
+      self.growth = {() in }
+    }
+
+    self.physicsBody = SKPhysicsBody.init(circleOfRadius: cellRadius)
+    physicsBody!.categoryBitMask = PhysicsCategory.Cell
+    physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
+
+  }
+  func update(_ currentTime:TimeInterval){
+    energy += 1
+    if energy > growthEnergy {
+      growth()
+      energy -= growthEnergy
+    }
+    if energy > childCells.count {
+      childCells.forEach{$0.energy += 1}
+      energy -= childCells.count
+    }
+    childCells.forEach{$0.update(currentTime)}
+  }
+
+  func appendCell(rotate: Int) {
+    let length = cellRadius * 3
+    let spawnPoint = {() -> CGPoint in
+      switch rotate {
+      case 0:
+        return CGPoint(x: self.position.x, y: self.position.y + length )
+      case 1:
+        return CGPoint(x: self.position.x - length, y: self.position.y)
+      case 2:
+        return CGPoint(x: self.position.x, y: self.position.y - length )
+      case 3:
+        return CGPoint(x: self.position.x + length, y: self.position.y)
+      default:
+        return CGPoint(x: self.position.x, y: self.position.y)
+      }
+    }()
+
+    let childCell = Cell.init(circleOfRadius: cellRadius)
+    childCell.position = spawnPoint
+
+    childCell.setup(with: world)
+    childCell.fillColor = NSColor.gray
+    childCells.append(childCell)
+    world.addChild(childCell)
+
+    let joint = SKPhysicsJointLimit.joint(withBodyA: physicsBody!, bodyB: childCell.physicsBody!,
+                                        anchorA: position,anchorB: childCell.position)
+    self.joints.append(joint)
     world.physicsWorld.add(joint)
   }
+
 }
