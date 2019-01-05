@@ -95,6 +95,8 @@ class Life{
   let world: World
   init(world: World) {
     self.world = world
+    // DEBUG
+//    self.world.physicsWorld.gravity = CGVector.zero
     cell = SKShapeNode.init(circleOfRadius: w)
     cell.physicsBody = SKPhysicsBody.init(circleOfRadius: w)
     cell.physicsBody!.categoryBitMask = PhysicsCategory.Cell
@@ -105,22 +107,30 @@ class Life{
   func update(_ currentTime:TimeInterval){
     if(up) {
       up = false
-      appendBone()
+      appendBone(rotate: 0)
+      appendBone(rotate: 1)
+      appendBone(rotate: 2)
+      appendBone(rotate: 3)
+      appendBone(rotate: 4)
+      appendBone(rotate: 5)
     }
   }
-  func appendBone() {
+  func appendBone(rotate: CGFloat) {
     let size = CGSize(width: s, height: s * 30)
-    let position = CGPoint(x: cell.position.x - s/2, y: cell.position.y + w/2)
+    let diffX = -s/2
+    let diffY = w * 3
+
+    let position = CGPoint(x: cell.position.x + diffX, y: cell.position.y + diffY)
     let bone = SKShapeNode.init(rect: CGRect(origin: position, size: size))
     bone.physicsBody = SKPhysicsBody.init(rectangleOf: size, center: position)
     bone.physicsBody!.categoryBitMask = PhysicsCategory.Bone
     bone.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Bone
     bone.fillColor = NSColor.gray
-    bone.zRotation = CGFloat.pi / 6 * 11
+    bone.zRotation = CGFloat.pi / 3 * rotate
     world.addChild(bone)
 
     let joint = SKPhysicsJointPin.joint(withBodyA: cell.physicsBody!, bodyB: bone.physicsBody!,
-                                        anchor: CGPoint(x: cell.frame.midX, y: cell.frame.midY))
+                                        anchor: bone.position)
     //回転の抵抗を設定する。
     joint.frictionTorque = 0.5
     //最小角度を30度に設定する。
