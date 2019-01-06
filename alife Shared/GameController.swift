@@ -99,8 +99,8 @@ class Life{
   let world: World
   init(world: World) {
     self.world = world
-    cell = BaseCell.init(circleOfRadius: cellRadius)
-    cell.setup(with: world)
+    cell = GreenCell.init(circleOfRadius: cellRadius)
+    cell.setup(with: world,gene:Gene())
   }
   var up = true
   func update(_ currentTime:TimeInterval){
