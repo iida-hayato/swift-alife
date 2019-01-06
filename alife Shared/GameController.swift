@@ -81,7 +81,7 @@ class World:SKScene {
     physicsWorld.gravity = CGVector.zero
 
     let cell = GreenCell.init(circleOfRadius: cellRadius)
-    let life = Life(world: self,cell: cell)
+    let life = Life(world: self,cell: cell,gene:Gene())
 
     cell.position = CGPoint.zero
     cell.energy = 1
@@ -92,7 +92,7 @@ class World:SKScene {
   }
 
   func appendLife(life:Life, cell:Cell) {
-    cell.setup(with: self, gene:Gene(), life: life) {}
+    cell.setup(with: self, life: life) {}
 
     lives.append(life)
     addChild(cell as! BaseCell)
@@ -107,9 +107,11 @@ let cellRadius:CGFloat = 10
 
 class Life{
   var cells: [String:Cell] = [:]
+  var gene: Gene
   let world: World
-  init(world: World,cell:Cell) {
+  init(world: World,cell:Cell,gene: Gene) {
     self.world = world
+    self.gene = gene
   }
 
   func update(_ currentTime:TimeInterval){
