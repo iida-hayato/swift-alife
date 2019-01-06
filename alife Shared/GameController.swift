@@ -81,22 +81,25 @@ class World:SKScene {
     physicsWorld.gravity = CGVector.zero
 
     let cell = GreenCell.init(circleOfRadius: cellRadius)
-    cell.setup(with: self, gene:Gene()) {
-        cell.joints.forEach {self.physicsWorld.remove($0)}
-        cell.joints.removeAll()
-        cell.removeFromParent()
-    }
+    let life = Life(world: self,cell: cell)
+
     cell.position = CGPoint.zero
     cell.energy = 1
 
-    appendLife(cell:cell)
+    appendLife(life: life, cell: cell)
+
     isPaused = false
   }
 
-  func appendLife(cell:BaseCell) {
-    let life = Life(world: self,cell: cell)
-    addChild(life.cell)
+  func appendLife(life:Life, cell:Cell) {
+    cell.setup(with: self, gene:Gene(), life: life) {
+      cell.joints.forEach {self.physicsWorld.remove($0)}
+      cell.joints.removeAll()
+      cell.removeFromParent()
+    }
+
     lives.append(life)
+    addChild(cell as! BaseCell)
   }
 
   override func update(_ currentTime: TimeInterval) {
@@ -107,13 +110,13 @@ class World:SKScene {
 let cellRadius:CGFloat = 10
 
 class Life{
-  let cell: BaseCell
+  var cells: [String:Cell] = [:]
   let world: World
-  init(world: World,cell:BaseCell) {
+  init(world: World,cell:Cell) {
     self.world = world
-    self.cell = cell
   }
+
   func update(_ currentTime:TimeInterval){
-    cell.update(currentTime)
+    cells.forEach{$0.value.update(currentTime)}
   }
 }

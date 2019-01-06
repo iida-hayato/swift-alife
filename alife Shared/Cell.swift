@@ -20,6 +20,7 @@ protocol Cell: class {
   var joints:[SKPhysicsJoint] {get set}
   var energy:CGFloat {get set}
   var world:World! {get set}
+  var life:Life! {get set}
   var growthCount:Int{get set}
 
   var physicsBody:SKPhysicsBody?{get set}
@@ -28,7 +29,7 @@ protocol Cell: class {
   func removeFromParent()
   var name:String? {get set}
 
-  func setup(with world:World, gene:Gene, death: @escaping ()->())
+  func setup(with world:World, gene:Gene,life:Life , death: @escaping ()->())
   func update(_ currentTime:TimeInterval)
   func work()
   func nextGrowth() -> (()->())
@@ -36,10 +37,15 @@ protocol Cell: class {
 }
 
 extension Cell {
-  func setup(with world:World, gene:Gene, death: @escaping ()->()){
+  func setup(with world:World, gene:Gene,life: Life , death: @escaping ()->()){
     self.world = world
+    self.life = life
     self.gene = gene
     self.death = death
+
+    let name = UUID.init().uuidString
+    self.name = name
+    life.cells[name] = self
 
     self.physicsBody = SKPhysicsBody.init(circleOfRadius: cellRadius)
     physicsBody!.categoryBitMask = PhysicsCategory.Cell
@@ -70,7 +76,6 @@ extension Cell {
         }
       }
     }
-    childCells.forEach{$0.value.update(currentTime)}
     if energy <= 0 || !gene.alive {
       death()
     }
@@ -107,6 +112,7 @@ class DebugCell:SKShapeNode, Cell {
   var energy:CGFloat = 10
   var childCells:[String:Cell] = [:]
   var world: World!
+  var life: Life!
   var growth: () -> () = {() in  }
   func work() {}
 
@@ -114,7 +120,7 @@ class DebugCell:SKShapeNode, Cell {
   func nextGrowth()->(()->()) {
     return {() in
       let childCell = DebugCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, gene:self.gene) {
+      childCell.setup(with: self.world, gene:self.gene, life: self.life) {
         childCell.joints.forEach {self.world.physicsWorld.remove($0)}
         childCell.joints.removeAll()
         childCell.removeFromParent()
@@ -140,12 +146,13 @@ class WallCell:SKShapeNode, Cell {
   var energy:CGFloat = 0
   var childCells:[String:Cell] = [:]
   var world: World!
+  var life: Life!
   func work() {}
 
   func nextGrowth()->(()->()) {
     return {() in
       let childCell = BreedCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, gene:self.gene) {
+      childCell.setup(with: self.world, gene:self.gene, life: self.life) {
         childCell.joints.forEach {self.world.physicsWorld.remove($0)}
         childCell.joints.removeAll()
         childCell.removeFromParent()
@@ -171,6 +178,7 @@ class GreenCell:SKShapeNode, Cell {
   var energy:CGFloat = 0
   var childCells:[String:Cell] = [:]
   var world: World!
+  var life: Life!
 
   func work() {
     let distance = distanceBetween(first: self.position, second: CGPoint.zero)
@@ -186,7 +194,7 @@ class GreenCell:SKShapeNode, Cell {
   func nextGrowth()->(()->()) {
     return {() in
       let childCell = WallCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, gene:self.gene) {
+      childCell.setup(with: self.world, gene:self.gene, life: self.life) {
         childCell.joints.forEach {self.world.physicsWorld.remove($0)}
         childCell.joints.removeAll()
         childCell.removeFromParent()
@@ -216,21 +224,18 @@ class BreedCell: BaseCell {
   var energy:CGFloat = 0
   var childCells:[String:Cell] = [:]
   var world: World!
+  var life: Life!
 
   var workEnergy:CGFloat = 10
   func work() {
     if energy > workEnergy{
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
-      cell.setup(with: world, gene:Gene()) {
-        cell.joints.forEach {self.world.physicsWorld.remove($0)}
-        cell.joints.removeAll()
-        cell.removeFromParent()
-      }
+      let life = Life.init(world: self.world, cell: cell)
       cell.position = position
       cell.energy = workEnergy
       energy -= workEnergy
-      world.appendLife(cell:cell)
+      world.appendLife(life:life, cell:cell)
     }
   }
 
