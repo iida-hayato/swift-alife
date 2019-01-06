@@ -92,11 +92,7 @@ class World:SKScene {
   }
 
   func appendLife(life:Life, cell:Cell) {
-    cell.setup(with: self, gene:Gene(), life: life) {
-      cell.joints.forEach {self.physicsWorld.remove($0)}
-      cell.joints.removeAll()
-      cell.removeFromParent()
-    }
+    cell.setup(with: self, gene:Gene(), life: life) {}
 
     lives.append(life)
     addChild(cell as! BaseCell)

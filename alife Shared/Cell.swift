@@ -77,6 +77,11 @@ extension Cell {
       }
     }
     if energy <= 0 || !gene.alive {
+     joints.forEach {self.world.physicsWorld.remove($0)}
+     joints.removeAll()
+     removeFromParent()
+     life.cells.removeValue(forKey: name!)
+
       death()
     }
   }
@@ -87,9 +92,9 @@ extension Cell {
     let spawnPoint = CGPoint(x: self.position.x - length * sin(radius * rotate) , y: self.position.y + length * cos(radius * rotate))
 
     childCell.position = spawnPoint
-    let name = UUID.init().uuidString
-    childCell.name = name
-    childCells[name] = (childCell as! Cell)
+    if let name = childCell.name {
+      childCells[name] = (childCell as! Cell)
+    }
     world.addChild(childCell)
 
     let joint = SKPhysicsJointLimit.joint(withBodyA: physicsBody!, bodyB: childCell.physicsBody!,
@@ -121,9 +126,6 @@ class DebugCell:SKShapeNode, Cell {
     return {() in
       let childCell = DebugCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene, life: self.life) {
-        childCell.joints.forEach {self.world.physicsWorld.remove($0)}
-        childCell.joints.removeAll()
-        childCell.removeFromParent()
         if let name = childCell.name {
           self.childCells.removeValue(forKey: name)
         }
@@ -153,9 +155,6 @@ class WallCell:SKShapeNode, Cell {
     return {() in
       let childCell = BreedCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene, life: self.life) {
-        childCell.joints.forEach {self.world.physicsWorld.remove($0)}
-        childCell.joints.removeAll()
-        childCell.removeFromParent()
         if let name = childCell.name {
           self.childCells.removeValue(forKey: name)
         }
@@ -195,9 +194,6 @@ class GreenCell:SKShapeNode, Cell {
     return {() in
       let childCell = WallCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene, life: self.life) {
-        childCell.joints.forEach {self.world.physicsWorld.remove($0)}
-        childCell.joints.removeAll()
-        childCell.removeFromParent()
         if let name = childCell.name {
           self.childCells.removeValue(forKey: name)
         }
