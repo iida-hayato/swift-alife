@@ -53,7 +53,6 @@ extension Cell {
   }
   func update(_ currentTime:TimeInterval){
     work()
-    life.gene.ticket += 1
     energy -= 0.1
     if life.gene.canGrowth {
       if energy >= Self.growthEnergy && growthCount < Self.growthLimit && life.gene.alive {
@@ -114,8 +113,8 @@ class DebugCell:SKShapeNode, Cell {
   var joints:[SKPhysicsJoint] = []
   var energy:CGFloat = 10
   var childCells:[String:Cell] = [:]
-  var world: World!
-  var life: Life!
+  weak var world: World!
+  weak var life: Life!
   var growth: () -> () = {() in  }
   func work() {}
 
@@ -144,8 +143,8 @@ class WallCell:SKShapeNode, Cell {
   var joints:[SKPhysicsJoint] = []
   var energy:CGFloat = 0
   var childCells:[String:Cell] = [:]
-  var world: World!
-  var life: Life!
+  weak var world: World!
+  weak var life: Life!
   func work() {}
 
   func nextGrowth()->(()->()) {
@@ -172,8 +171,8 @@ class GreenCell:SKShapeNode, Cell {
   var joints:[SKPhysicsJoint] = []
   var energy:CGFloat = 0
   var childCells:[String:Cell] = [:]
-  var world: World!
-  var life: Life!
+  weak var world: World!
+  weak var life: Life!
 
   func work() {
     let distance = distanceBetween(first: self.position, second: CGPoint.zero)
@@ -214,8 +213,8 @@ class BreedCell: BaseCell {
   var joints:[SKPhysicsJoint] = []
   var energy:CGFloat = 0
   var childCells:[String:Cell] = [:]
-  var world: World!
-  var life: Life!
+  weak var world: World!
+  weak var life: Life!
 
   var workEnergy:CGFloat = 10
   func work() {
