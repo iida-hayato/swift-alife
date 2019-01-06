@@ -20,9 +20,11 @@ protocol Cell: class {
   var joints:[SKPhysicsJoint] {get set}
   var energy:CGFloat {get set}
   var world:World! {get set}
+  var growthCount:Int{get set}
+
   var physicsBody:SKPhysicsBody?{get set}
   var position:CGPoint{get set}
-  var growthCount:Int{get set}
+  var fillColor:NSColor{get set}
 
   func setup(with world:World, gene: Gene)
   func update(_ currentTime:TimeInterval)
@@ -40,6 +42,7 @@ extension Cell {
     physicsBody!.categoryBitMask = PhysicsCategory.Cell
     physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
 
+    fillColor = Self.color
   }
   func update(_ currentTime:TimeInterval){
     work()
@@ -77,7 +80,6 @@ extension Cell {
 
     childCell.position = spawnPoint
 
-    childCell.fillColor = Self.color
     childCells.append(childCell as! Cell)
     world.addChild(childCell)
 
@@ -116,7 +118,7 @@ class DebugCell:SKShapeNode, Cell {
 }
 
 class WallCell:SKShapeNode, Cell {
-  static var growthLimit: Int = 6
+  static var growthLimit: Int = 1
   static var color = NSColor.gray
   var growthCount: Int = 0
   var gene: Gene!
@@ -125,9 +127,7 @@ class WallCell:SKShapeNode, Cell {
   var energy:CGFloat = 0
   var childCells:[Cell] = []
   var world: World!
-  func work() {
-    print(energy)
-  }
+  func work() {}
 
   func nextGrowth()->(()->()) {
     return {() in
