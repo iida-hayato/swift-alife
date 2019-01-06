@@ -144,7 +144,6 @@ class WallCell:SKShapeNode, Cell {
 
   func nextGrowth()->(()->()) {
     return {() in
-      print("wall growth")
       let childCell = BreedCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene) {
         childCell.joints.forEach {self.world.physicsWorld.remove($0)}
@@ -174,12 +173,18 @@ class GreenCell:SKShapeNode, Cell {
   var world: World!
 
   func work() {
-    energy += 10 // TODO: 場所による差をつける
+    let distance = distanceBetween(first: self.position, second: CGPoint.zero)
+    energy += {()->CGFloat in
+      let MaxGenerateEnergy:CGFloat = 100
+      if distance <= 1 {
+        return MaxGenerateEnergy
+      }
+      return MaxGenerateEnergy / (distance * distance)
+    }()
   }
 
   func nextGrowth()->(()->()) {
     return {() in
-      print("green growth")
       let childCell = WallCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene) {
         childCell.joints.forEach {self.world.physicsWorld.remove($0)}
@@ -212,11 +217,10 @@ class BreedCell: BaseCell {
   var childCells:[String:Cell] = [:]
   var world: World!
 
-  var workEnergy:CGFloat = 100
+  var workEnergy:CGFloat = 10
   func work() {
     if energy > workEnergy{
       // 子供つくる
-      print("breeding")
       let cell = GreenCell.init(circleOfRadius: cellRadius)
       cell.setup(with: world, gene:Gene()) {
         cell.joints.forEach {self.world.physicsWorld.remove($0)}
@@ -245,4 +249,9 @@ class Gene {
     // 10 turn over
     return ticket > 10
   }
+}
+
+
+func distanceBetween(first:CGPoint , second:CGPoint)-> CGFloat {
+  return CGFloat(hypotf(Float(second.x - first.x), Float(second.y - first.y)));
 }
