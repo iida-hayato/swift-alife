@@ -25,6 +25,7 @@ protocol Cell: class {
   var physicsBody:SKPhysicsBody?{get set}
   var position:CGPoint{get set}
   var fillColor:NSColor{get set}
+  var strokeColor:NSColor{get set}
   func removeFromParent()
   var name:String? {get set}
 
@@ -50,6 +51,8 @@ extension Cell {
     physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
 
     fillColor = Self.color
+    strokeColor = life.color
+
   }
   func update(_ currentTime:TimeInterval){
     work()
