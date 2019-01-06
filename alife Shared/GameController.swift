@@ -81,8 +81,13 @@ class World:SKScene {
     physicsWorld.gravity = CGVector.zero
 
     let cell = GreenCell.init(circleOfRadius: cellRadius)
-    cell.setup(with: self, gene:Gene())
+    cell.setup(with: self, gene:Gene()) {
+        cell.joints.forEach {self.physicsWorld.remove($0)}
+        cell.joints.removeAll()
+        cell.removeFromParent()
+    }
     cell.position = CGPoint.zero
+    cell.energy = 1
 
     appendLife(cell:cell)
     isPaused = false
