@@ -53,7 +53,7 @@ struct PhysicsCategory {
 }
 
 class World:SKScene {
-  var lives:[Life] = []
+  var lives:[String:Life] = [:]
   var hudNode: SCNNode {
     let plane = SCNPlane(width:5,height:5)
     let material = SCNMaterial()
@@ -81,39 +81,48 @@ class World:SKScene {
     physicsWorld.gravity = CGVector.zero
 
     let cell = GreenCell.init(circleOfRadius: cellRadius)
-    cell.setup(with: self, gene:Gene()) {
-        cell.joints.forEach {self.physicsWorld.remove($0)}
-        cell.joints.removeAll()
-        cell.removeFromParent()
-    }
+    let life = Life(world: self,cell: cell,gene:Gene())
+
     cell.position = CGPoint.zero
     cell.energy = 1
 
-    appendLife(cell:cell)
+    appendLife(life: life, cell: cell)
+
     isPaused = false
   }
 
-  func appendLife(cell:BaseCell) {
-    let life = Life(world: self,cell: cell)
-    addChild(life.cell)
-    lives.append(life)
+  func appendLife(life:Life, cell:Cell) {
+    cell.setup(with: self, life: life) {}
+
+    lives[life.name] = life
+    addChild(cell as! BaseCell)
   }
 
   override func update(_ currentTime: TimeInterval) {
-    lives.forEach({$0.update(currentTime)})
+    lives.forEach({$0.value.update(currentTime)})
   }
 }
 
 let cellRadius:CGFloat = 10
 
 class Life{
-  let cell: BaseCell
-  let world: World
-  init(world: World,cell:BaseCell) {
+  var cells: [String:Cell] = [:]
+  var gene: Gene
+  unowned let world: World
+  let name: String
+  init(world: World,cell:Cell,gene: Gene) {
     self.world = world
-    self.cell = cell
+    self.gene = gene
+    self.name = UUID().uuidString
   }
+
   func update(_ currentTime:TimeInterval){
-    cell.update(currentTime)
+    gene.ticket += 1
+    cells.forEach{$0.value.update(currentTime)}
+    if !gene.alive {
+      cells.forEach{$0.value.kill()}
+      cells.removeAll()
+      world.lives.removeValue(forKey: name)
+    }
   }
 }
