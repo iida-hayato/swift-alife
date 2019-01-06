@@ -74,12 +74,7 @@ extension Cell {
       }
     }
     if energy <= 0 || !life.gene.alive {
-     joints.forEach {self.world.physicsWorld.remove($0)}
-     joints.removeAll()
-     removeFromParent()
-     life.cells.removeValue(forKey: name!)
-
-      death()
+      kill()
     }
   }
 
@@ -99,7 +94,14 @@ extension Cell {
     self.joints.append(joint)
     world.physicsWorld.add(joint)
   }
+  func kill() {
+    death()
 
+    joints.forEach {self.world.physicsWorld.remove($0)}
+    joints.removeAll()
+    removeFromParent()
+    life.cells.removeValue(forKey: name!)
+  }
 }
 
 class DebugCell:SKShapeNode, Cell {
@@ -122,9 +124,9 @@ class DebugCell:SKShapeNode, Cell {
   func nextGrowth()->(()->()) {
     return {() in
       let childCell = DebugCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) {
+      childCell.setup(with: self.world, life: self.life) {[weak self] in
         if let name = childCell.name {
-          self.childCells.removeValue(forKey: name)
+          self?.childCells.removeValue(forKey: name)
         }
       }
       childCell.energy = DebugCell.growthEnergy/2
@@ -150,9 +152,9 @@ class WallCell:SKShapeNode, Cell {
   func nextGrowth()->(()->()) {
     return {() in
       let childCell = BreedCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) {
+      childCell.setup(with: self.world, life: self.life) {[weak self] in
         if let name = childCell.name {
-          self.childCells.removeValue(forKey: name)
+          self?.childCells.removeValue(forKey: name)
         }
       }
       childCell.energy = BreedCell.growthEnergy/2
@@ -188,9 +190,9 @@ class GreenCell:SKShapeNode, Cell {
   func nextGrowth()->(()->()) {
     return {() in
       let childCell = WallCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) {
+      childCell.setup(with: self.world, life: self.life) {[weak self] in
         if let name = childCell.name {
-          self.childCells.removeValue(forKey: name)
+          self?.childCells.removeValue(forKey: name)
         }
       }
       childCell.energy = WallCell.growthEnergy/2

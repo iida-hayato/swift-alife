@@ -120,6 +120,7 @@ class Life{
     gene.ticket += 1
     cells.forEach{$0.value.update(currentTime)}
     if !gene.alive {
+      cells.forEach{$0.value.kill()}
       cells.removeAll()
       world.lives.removeValue(forKey: name)
     }
