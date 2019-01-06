@@ -7,15 +7,18 @@
 //
 
 import SpriteKit
+var nothing = {() in }
+typealias BaseCell = SKShapeNode & Cell
+
 protocol Cell: class {
-  static var growthEnergy:Int {get}
+  static var growthEnergy:CGFloat {get}
   static var growthLimit:Int {get}
   static var color:NSColor {get}
 
   var gene:Gene! {get set}
   var childCells:[Cell] {get set}
   var joints:[SKPhysicsJoint] {get set}
-  var energy:Int {get set}
+  var energy:CGFloat {get set}
   var world:World! {get set}
   var physicsBody:SKPhysicsBody?{get set}
   var position:CGPoint{get set}
@@ -25,6 +28,7 @@ protocol Cell: class {
   func update(_ currentTime:TimeInterval)
   func work()
   func nextGrowth() -> (()->())
+  func death()
 }
 
 extension Cell {
@@ -40,28 +44,30 @@ extension Cell {
   func update(_ currentTime:TimeInterval){
     work()
     gene.ticket += 1
-    if gene.ticket < 10 {
-      // 生成直後10ターン何もしない
-      return
+    energy -= 0.1
+    if gene.canGrowth {
+      if energy >= Self.growthEnergy && growthCount < Self.growthLimit && gene.alive {
+        growthCount += 1
+        nextGrowth()()
+        energy -= Self.growthEnergy
+      }
     }
-    if energy >= Self.growthEnergy && growthCount < Self.growthLimit && gene.alive {
-      growthCount += 1
-      nextGrowth()()
-      energy -= Self.growthEnergy
-    }
-    if energy > childCells.count {
+    if energy > CGFloat(childCells.count) {
       childCells.forEach{
-        if $0.energy > self.energy + 1 {
+        if $0.energy > self.energy + 1.1 {
           self.energy += 1
-          $0.energy -= 1
+          $0.energy -= 1.1
         }
-        if self.energy > $0.energy + 1 {
+        if self.energy > $0.energy + 1.1 {
           $0.energy += 1
-          self.energy -= 1
+          self.energy -= 1.1
         }
       }
     }
     childCells.forEach{$0.update(currentTime)}
+    if energy <= 0 || gene.alive {
+      death()
+    }
   }
 
   func appendCell(childCell: SKShapeNode, rotate: CGFloat) {
@@ -80,17 +86,20 @@ extension Cell {
     self.joints.append(joint)
     world.physicsWorld.add(joint)
   }
+
+  func death() {
+
+  }
 }
 
-typealias BaseCell = SKShapeNode & Cell
 class DebugCell:SKShapeNode, Cell {
   static var growthLimit: Int = 6
   static var color = NSColor.white
   var growthCount: Int = 0
-  static let growthEnergy = 10
+  static let growthEnergy:CGFloat = 10
   var gene: Gene!
   var joints:[SKPhysicsJoint] = []
-  var energy = 10
+  var energy:CGFloat = 10
   var childCells:[Cell] = []
   var world: World!
   var growth: () -> () = {() in  }
@@ -100,6 +109,7 @@ class DebugCell:SKShapeNode, Cell {
     return {() in
       let childCell = DebugCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene)
+      childCell.energy = DebugCell.growthEnergy/2
       self.appendCell(childCell: childCell,rotate:  CGFloat.random(in: 0...5))
     }
   }
@@ -110,19 +120,21 @@ class WallCell:SKShapeNode, Cell {
   static var color = NSColor.gray
   var growthCount: Int = 0
   var gene: Gene!
-  static let growthEnergy = 10
+  static let growthEnergy:CGFloat = 10
   var joints:[SKPhysicsJoint] = []
-  var energy = 0
+  var energy:CGFloat = 0
   var childCells:[Cell] = []
-  let growthEnergy = 10
   var world: World!
-  func work() {}
+  func work() {
+    print(energy)
+  }
 
   func nextGrowth()->(()->()) {
     return {() in
       print("wall growth")
-      let childCell = GreenCell.init(circleOfRadius: cellRadius)
+      let childCell = BreedCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene)
+      childCell.energy = BreedCell.growthEnergy/2
       self.appendCell(childCell: childCell,rotate:  CGFloat.random(in: 0...5))
     }
   }
@@ -133,15 +145,14 @@ class GreenCell:SKShapeNode, Cell {
   static var color = NSColor.green
   var growthCount: Int = 0
   var gene: Gene!
-  static let growthEnergy = 10
+  static let growthEnergy:CGFloat = 10
   var joints:[SKPhysicsJoint] = []
-  var energy = 0
+  var energy:CGFloat = 0
   var childCells:[Cell] = []
-  let growthEnergy = 10
   var world: World!
 
   func work() {
-    energy += 1 // TODO: 場所による差をつける
+    energy += 10 // TODO: 場所による差をつける
   }
 
   func nextGrowth()->(()->()) {
@@ -149,6 +160,7 @@ class GreenCell:SKShapeNode, Cell {
       print("green growth")
       let childCell = WallCell.init(circleOfRadius: cellRadius)
       childCell.setup(with: self.world, gene:self.gene)
+      childCell.energy = WallCell.growthEnergy/2
       self.appendCell(childCell: childCell,rotate:  CGFloat.random(in: 0...5))
     }
   }
@@ -158,8 +170,34 @@ class FootCell {
 
 }
 
-class BreedCell {
+class BreedCell: BaseCell {
+  static var growthLimit: Int = 6
+  static var color = NSColor.orange
+  var growthCount: Int = 0
+  var gene: Gene!
+  static let growthEnergy:CGFloat = 10
+  var joints:[SKPhysicsJoint] = []
+  var energy:CGFloat = 0
+  var childCells:[Cell] = []
+  var world: World!
 
+  var workEnergy:CGFloat = 100
+  func work() {
+    if energy > workEnergy{
+      // 子供つくる
+      print("breeding")
+      let cell = GreenCell.init(circleOfRadius: cellRadius)
+      cell.setup(with: world, gene:Gene())
+      cell.position = position
+      cell.energy = workEnergy
+      energy -= workEnergy
+      world.appendLife(cell:cell)
+    }
+  }
+
+  func nextGrowth()->(()->()) {
+    return nothing
+  }
 }
 
 class Gene {
@@ -167,5 +205,9 @@ class Gene {
   var ticket = 0
   var alive:Bool {
     return ticket < lifespan
+  }
+  var canGrowth:Bool {
+    // 10 turn over
+    return ticket > 10
   }
 }
