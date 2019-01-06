@@ -7,15 +7,21 @@
 //
 
 import SpriteKit
+protocol Cell: class {
+  var childCells:[Cell] {get set}
+  var joints:[SKPhysicsJoint] {get set}
+  var energy:Int {get set}
+  static var growthEnergy:Int {get}
+  var world:World! {get set}
+  var growth: () -> () {get set}
+  func setup(with world:World)
+  func update(_ currentTime:TimeInterval)
+  func work()
+  var physicsBody:SKPhysicsBody?{get set}
+  var position:CGPoint{get set}
+}
 
-class BaseCell:SKShapeNode{
-  var joints:[SKPhysicsJoint] = []
-  var energy = 0
-  var childCells:[BaseCell] = []
-  let growthEnergy = 10
-  var world: World!
-  var growth: () -> () = {() in  }
-
+extension Cell {
   func setup(with world:World){
     self.world = world
     self.growth = { () in
@@ -30,9 +36,9 @@ class BaseCell:SKShapeNode{
   }
   func update(_ currentTime:TimeInterval){
     energy += 1
-    if energy > growthEnergy {
+    if energy > Self.growthEnergy {
       growth()
-      energy -= growthEnergy
+      energy -= Self.growthEnergy
     }
     if energy > childCells.count {
       childCells.forEach{$0.energy += 1}
@@ -59,14 +65,41 @@ class BaseCell:SKShapeNode{
     self.joints.append(joint)
     world.physicsWorld.add(joint)
   }
+}
+
+class BaseCell:SKShapeNode, Cell {
+  static let growthEnergy = 10
+  var joints:[SKPhysicsJoint] = []
+  var energy = 0
+  var childCells:[Cell] = []
+  var world: World!
+  var growth: () -> () = {() in  }
+  func work() {}
+
 
 }
 
 class WallCell {
+  static let growthEnergy = 10
+  var joints:[SKPhysicsJoint] = []
+  var energy = 0
+  var childCells:[Cell] = []
+  let growthEnergy = 10
+  var world: World!
+  var growth: () -> () = {() in  }
+  func work() {}
 
 }
 
-class GreenCell {
+class GreenCell:SKShapeNode, Cell {
+  static let growthEnergy = 10
+  var joints:[SKPhysicsJoint] = []
+  var energy = 0
+  var childCells:[Cell] = []
+  let growthEnergy = 10
+  var world: World!
+  var growth: () -> () = {() in  }
+  func work() {}
 
 }
 
