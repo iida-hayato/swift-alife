@@ -21,9 +21,9 @@ typealias SCNColor = UIColor
 
 class GameController: NSObject, SCNSceneRendererDelegate {
 
-  let scene: SCNScene
+  let scene:         SCNScene
   let sceneRenderer: SCNSceneRenderer
-  var worlds:[World] = []
+  var worlds:        [World] = []
 
   init(sceneRenderer renderer: SCNSceneRenderer) {
     sceneRenderer = renderer
@@ -46,16 +46,16 @@ class GameController: NSObject, SCNSceneRendererDelegate {
 }
 
 struct PhysicsCategory {
-  static let None:        UInt32 = 0      //  0
-  static let Edge:        UInt32 = 0b1    //  1
-  static let Bone:        UInt32 = 0b10   //  2
-  static let Cell:        UInt32 = 0b100  //  4
+  static let None: UInt32 = 0      //  0
+  static let Edge: UInt32 = 0b1    //  1
+  static let Bone: UInt32 = 0b10   //  2
+  static let Cell: UInt32 = 0b100  //  4
 }
 
-class World:SKScene {
-  var lives:[String:Life] = [:]
+class World: SKScene {
+  var lives:   [String: Life] = [:]
   var hudNode: SCNNode {
-    let plane = SCNPlane(width:5,height:5)
+    let plane    = SCNPlane(width: 5, height: 5)
     let material = SCNMaterial()
     material.lightingModel = SCNMaterial.LightingModel.constant
     material.isDoubleSided = true
@@ -65,11 +65,11 @@ class World:SKScene {
     let hudNode = SCNNode(geometry: plane)
     hudNode.name = "HUD"
     hudNode.rotation = SCNVector4(x: 1, y: 0, z: 0, w: 3.14159265)
-    hudNode.position = SCNVector3(x:0, y: 0.5, z: -5)
+    hudNode.position = SCNVector3(x: 0, y: 0.5, z: -5)
     return hudNode
   }
 
-  func start(){
+  func start() {
 
     let edge = SKNode()
     edge.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
@@ -81,7 +81,7 @@ class World:SKScene {
     physicsWorld.gravity = CGVector.zero
 
     let cell = GreenCell.init(circleOfRadius: cellRadius)
-    let life = Life(world: self,cell: cell,gene:Gene())
+    let life = Life(world: self, cell: cell, gene: Gene())
 
     cell.position = CGPoint.zero
     cell.energy = 1
@@ -91,7 +91,7 @@ class World:SKScene {
     isPaused = false
   }
 
-  func appendLife(life:Life, cell:Cell) {
+  func appendLife(life: Life, cell: Cell) {
     cell.setup(with: self, life: life) {}
 
     lives[life.name] = life
@@ -99,30 +99,31 @@ class World:SKScene {
   }
 
   override func update(_ currentTime: TimeInterval) {
-    lives.forEach({$0.value.update(currentTime)})
+    lives.forEach({ $0.value.update(currentTime) })
   }
 }
 
-let cellRadius:CGFloat = 10
+let cellRadius: CGFloat = 10
 
-class Life{
-  var cells: [String:Cell] = [:]
-  var gene: Gene
+class Life {
+  var cells: [String: Cell] = [:]
+  var gene:  Gene
   var color: NSColor
   unowned let world: World
   let name: String
-  init(world: World,cell:Cell,gene: Gene) {
+
+  init(world: World, cell: Cell, gene: Gene) {
     self.world = world
     self.gene = gene
     self.name = UUID().uuidString
     self.color = NSColor.init(red: CGFloat(drand48()), green: CGFloat(drand48()), blue: CGFloat(drand48()), alpha: 1.0)
   }
 
-  func update(_ currentTime:TimeInterval){
+  func update(_ currentTime: TimeInterval) {
     gene.ticket += 1
-    cells.forEach{$0.value.update(currentTime)}
+    cells.forEach { $0.value.update(currentTime) }
     if !gene.alive {
-      cells.forEach{$0.value.kill()}
+      cells.forEach { $0.value.kill() }
       cells.removeAll()
       world.lives.removeValue(forKey: name)
     }

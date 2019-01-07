@@ -7,37 +7,38 @@
 //
 
 import SpriteKit
-var nothing = {() in }
+
+var nothing = { () in }
 typealias BaseCell = SKShapeNode & Cell
 
 protocol Cell: class {
-  static var growthEnergy:CGFloat {get}
-  static var growthLimit:Int {get}
-  static var color:NSColor {get}
+  static var growthEnergy: CGFloat { get }
+  static var growthLimit:  Int { get }
+  static var color:        NSColor { get }
 
-  var childCells:[String:Cell] {get set}
-  var joints:[SKPhysicsJoint] {get set}
-  var energy:CGFloat {get set}
-  var world:World! {get set}
-  var life:Life! {get set}
-  var growthCount:Int{get set}
+  var childCells:  [String: Cell] { get set }
+  var joints:      [SKPhysicsJoint] { get set }
+  var energy:      CGFloat { get set }
+  var world:       World! { get set }
+  var life:        Life! { get set }
+  var growthCount: Int { get set }
 
-  var physicsBody:SKPhysicsBody?{get set}
-  var position:CGPoint{get set}
-  var fillColor:NSColor{get set}
-  var strokeColor:NSColor{get set}
+  var physicsBody: SKPhysicsBody? { get set }
+  var position:    CGPoint { get set }
+  var fillColor:   NSColor { get set }
+  var strokeColor: NSColor { get set }
   func removeFromParent()
-  var name:String? {get set}
+  var name: String? { get set }
 
-  func setup(with world:World, life:Life , death: @escaping ()->())
-  func update(_ currentTime:TimeInterval)
+  func setup(with world: World, life: Life, death: @escaping () -> ())
+  func update(_ currentTime: TimeInterval)
   func work()
-  func nextGrowth() -> (()->())
-  var death: (() -> ())! {get set}
+  func nextGrowth() -> (() -> ())
+  var death: (() -> ())! { get set }
 }
 
 extension Cell {
-  func setup(with world:World, life: Life , death: @escaping ()->()){
+  func setup(with world: World, life: Life, death: @escaping () -> ()) {
     self.world = world
     self.life = life
     self.death = death
@@ -54,7 +55,8 @@ extension Cell {
     strokeColor = life.color
 
   }
-  func update(_ currentTime:TimeInterval){
+
+  func update(_ currentTime: TimeInterval) {
     work()
     energy -= 0.1
     if life.gene.canGrowth {
@@ -65,7 +67,7 @@ extension Cell {
       }
     }
     if energy > CGFloat(childCells.count) {
-      childCells.forEach{
+      childCells.forEach {
         if $0.value.energy > self.energy + 1.1 {
           self.energy += 1
           $0.value.energy -= 1.1
@@ -82,9 +84,9 @@ extension Cell {
   }
 
   func appendCell(childCell: SKShapeNode, rotate: CGFloat) {
-    let length = cellRadius * 3
-    let radius = CGFloat.pi / 3
-    let spawnPoint = CGPoint(x: self.position.x - length * sin(radius * rotate) , y: self.position.y + length * cos(radius * rotate))
+    let length     = cellRadius * 3
+    let radius     = CGFloat.pi / 3
+    let spawnPoint = CGPoint(x: self.position.x - length * sin(radius * rotate), y: self.position.y + length * cos(radius * rotate))
 
     childCell.position = spawnPoint
     if let name = childCell.name {
@@ -93,113 +95,116 @@ extension Cell {
     world.addChild(childCell)
 
     let joint = SKPhysicsJointLimit.joint(withBodyA: physicsBody!, bodyB: childCell.physicsBody!,
-                                          anchorA: position,anchorB: childCell.position)
+                                          anchorA: position, anchorB: childCell.position)
     self.joints.append(joint)
     world.physicsWorld.add(joint)
   }
+
   func kill() {
     death()
 
-    joints.forEach {self.world.physicsWorld.remove($0)}
+    joints.forEach { self.world.physicsWorld.remove($0) }
     joints.removeAll()
     removeFromParent()
     life.cells.removeValue(forKey: name!)
   }
 }
 
-class DebugCell:SKShapeNode, Cell {
+class DebugCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 6
-  static var color = NSColor.white
+  static var color            = NSColor.white
   var growthCount: Int = 0
-  static let growthEnergy:CGFloat = 10
+  static let growthEnergy: CGFloat = 10
 
-  var joints:[SKPhysicsJoint] = []
-  var energy:CGFloat = 10
-  var childCells:[String:Cell] = [:]
+  var joints:     [SKPhysicsJoint] = []
+  var energy:     CGFloat          = 10
+  var childCells: [String: Cell]   = [:]
   weak var world: World!
-  weak var life: Life!
-  var growth: () -> () = {() in  }
+  weak var life:  Life!
+  var growth: () -> () = { () in }
+
   func work() {}
 
 
-  func nextGrowth()->(()->()) {
-    return {() in
+  func nextGrowth() -> (() -> ()) {
+    return { () in
       let childCell = DebugCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) {[weak self] in
+      childCell.setup(with: self.world, life: self.life) { [weak self] in
         if let name = childCell.name {
           self?.childCells.removeValue(forKey: name)
         }
       }
-      childCell.energy = DebugCell.growthEnergy/2
-      self.appendCell(childCell: childCell,rotate:  CGFloat.random(in: 0...5))
+      childCell.energy = DebugCell.growthEnergy / 2
+      self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
     }
   }
 }
 
-class WallCell:SKShapeNode, Cell {
+class WallCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 1
-  static var color = NSColor.gray
+  static var color            = NSColor.gray
   var growthCount: Int = 0
-  static let growthEnergy:CGFloat = 10
-  var joints:[SKPhysicsJoint] = []
-  var energy:CGFloat = 0
-  var childCells:[String:Cell] = [:]
+  static let growthEnergy: CGFloat = 10
+  var joints:     [SKPhysicsJoint] = []
+  var energy:     CGFloat          = 0
+  var childCells: [String: Cell]   = [:]
   weak var world: World!
-  weak var life: Life!
+  weak var life:  Life!
+
   func work() {}
 
-  func nextGrowth()->(()->()) {
-    return {() in
+  func nextGrowth() -> (() -> ()) {
+    return { () in
       let childCell = BreedCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) {[weak self] in
+      childCell.setup(with: self.world, life: self.life) { [weak self] in
         if let name = childCell.name {
           self?.childCells.removeValue(forKey: name)
         }
       }
-      childCell.energy = BreedCell.growthEnergy/2
-      self.appendCell(childCell: childCell,rotate:  CGFloat.random(in: 0...5))
+      childCell.energy = BreedCell.growthEnergy / 2
+      self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
     }
   }
 }
 
-class GreenCell:SKShapeNode, Cell {
+class GreenCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 6
-  static var color = NSColor.green
+  static var color            = NSColor.green
   var growthCount: Int = 0
-  static let growthEnergy:CGFloat = 10
-  var joints:[SKPhysicsJoint] = []
-  var energy:CGFloat = 0
-  var childCells:[String:Cell] = [:]
+  static let growthEnergy: CGFloat = 10
+  var joints:     [SKPhysicsJoint] = []
+  var energy:     CGFloat          = 0
+  var childCells: [String: Cell]   = [:]
   weak var world: World!
-  weak var life: Life!
+  weak var life:  Life!
 
   func work() {
     let distance = distanceBetween(first: self.position, second: CGPoint.zero)
-    energy += {()->CGFloat in
-      let MaxGenerateEnergy:CGFloat = 100
+    energy += { () -> CGFloat in
+      let MaxGenerateEnergy: CGFloat = 100
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return MaxGenerateEnergy / (distance * distance)
+      return MaxGenerateEnergy / (distance)
     }()
   }
 
-  func nextGrowth()->(()->()) {
-    return {() in
+  func nextGrowth() -> (() -> ()) {
+    return { () in
       let childCell = WallCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) {[weak self] in
+      childCell.setup(with: self.world, life: self.life) { [weak self] in
         if let name = childCell.name {
           self?.childCells.removeValue(forKey: name)
         }
       }
-      childCell.energy = WallCell.growthEnergy/2
-      self.appendCell(childCell: childCell,rotate:  CGFloat.random(in: 0...5))
+      childCell.energy = WallCell.growthEnergy / 2
+      self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
     }
   }
 }
@@ -212,46 +217,47 @@ class BreedCell: BaseCell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 6
-  static var color = NSColor.orange
+  static var color            = NSColor.orange
   var growthCount: Int = 0
-  static let growthEnergy:CGFloat = 10
-  var joints:[SKPhysicsJoint] = []
-  var energy:CGFloat = 0
-  var childCells:[String:Cell] = [:]
+  static let growthEnergy: CGFloat = 10
+  var joints:     [SKPhysicsJoint] = []
+  var energy:     CGFloat          = 0
+  var childCells: [String: Cell]   = [:]
   weak var world: World!
-  weak var life: Life!
+  weak var life:  Life!
 
-  var workEnergy:CGFloat = 10
+  var workEnergy: CGFloat = 10
+
   func work() {
-    if energy > workEnergy{
+    if energy > workEnergy {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
-      let life = Life.init(world: self.world, cell: cell,gene: Gene())
+      let life = Life.init(world: self.world, cell: cell, gene: Gene())
       cell.position = position
       cell.energy = workEnergy
       energy -= workEnergy
-      world.appendLife(life:life, cell:cell)
+      world.appendLife(life: life, cell: cell)
     }
   }
 
-  func nextGrowth()->(()->()) {
+  func nextGrowth() -> (() -> ()) {
     return nothing
   }
 }
 
 class Gene {
-  var lifespan = 1000
-  var ticket = 0
-  var alive:Bool {
+  var lifespan = 100
+  var ticket   = 0
+  var alive:     Bool {
     return ticket < lifespan
   }
-  var canGrowth:Bool {
+  var canGrowth: Bool {
     // 10 turn over
     return ticket > 10
   }
 }
 
 
-func distanceBetween(first:CGPoint , second:CGPoint)-> CGFloat {
+func distanceBetween(first: CGPoint, second: CGPoint) -> CGFloat {
   return CGFloat(hypotf(Float(second.x - first.x), Float(second.y - first.y)));
 }
