@@ -14,7 +14,7 @@ typealias BaseCell = SKShapeNode & Cell
 protocol Cell: class {
   static var growthEnergy: CGFloat { get }
   static var growthLimit:  Int { get }
-  static var color:        NSColor { get }
+  static var color:        SCNColor { get }
 
   var childCells:  [String: Cell] { get set }
   var joints:      [SKPhysicsJoint] { get set }
@@ -25,8 +25,8 @@ protocol Cell: class {
 
   var physicsBody: SKPhysicsBody? { get set }
   var position:    CGPoint { get set }
-  var fillColor:   NSColor { get set }
-  var strokeColor: NSColor { get set }
+  var fillColor:   SCNColor { get set }
+  var strokeColor: SCNColor { get set }
   func removeFromParent()
   var name: String? { get set }
 
@@ -114,7 +114,7 @@ class DebugCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 6
-  static var color            = NSColor.white
+  static var color            = SCNColor.white
   var growthCount: Int = 0
   static let growthEnergy: CGFloat = 10
 
@@ -146,7 +146,7 @@ class WallCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 1
-  static var color            = NSColor.gray
+  static var color            = SCNColor.gray
   var growthCount: Int = 0
   static let growthEnergy: CGFloat = 10
   var joints:     [SKPhysicsJoint] = []
@@ -175,7 +175,7 @@ class GreenCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 6
-  static var color            = NSColor.green
+  static var color            = SCNColor.green
   var growthCount: Int = 0
   static let growthEnergy: CGFloat = 10
   var joints:     [SKPhysicsJoint] = []
@@ -217,7 +217,7 @@ class BreedCell: BaseCell {
   var death: (() -> ())!
 
   static var growthLimit: Int = 6
-  static var color            = NSColor.orange
+  static var color            = SCNColor.orange
   var growthCount: Int = 0
   static let growthEnergy: CGFloat = 10
   var joints:     [SKPhysicsJoint] = []

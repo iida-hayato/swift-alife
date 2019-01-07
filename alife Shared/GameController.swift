@@ -108,7 +108,7 @@ let cellRadius: CGFloat = 10
 class Life {
   var cells: [String: Cell] = [:]
   var gene:  Gene
-  var color: NSColor
+  var color: SCNColor
   unowned let world: World
   let name: String
 
@@ -116,7 +116,7 @@ class Life {
     self.world = world
     self.gene = gene
     self.name = UUID().uuidString
-    self.color = NSColor.init(red: CGFloat(drand48()), green: CGFloat(drand48()), blue: CGFloat(drand48()), alpha: 1.0)
+    self.color = SCNColor.init(red: CGFloat(drand48()), green: CGFloat(drand48()), blue: CGFloat(drand48()), alpha: 1.0)
   }
 
   func update(_ currentTime: TimeInterval) {
