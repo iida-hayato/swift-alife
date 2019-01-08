@@ -23,7 +23,6 @@ protocol Cell: class {
   var life:        Life! { get set }
   var growthCount: Int { get set }
 
-  var physicsBody: SKPhysicsBody? { get set }
   var position:    CGPoint { get set }
   var fillColor:   SCNColor { get set }
   var strokeColor: SCNColor { get set }
@@ -47,9 +46,19 @@ extension Cell {
     self.name = name
     life.cells[name] = self
 
-    self.physicsBody = SKPhysicsBody.init(circleOfRadius: cellRadius)
-    physicsBody!.categoryBitMask = PhysicsCategory.Cell
-    physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
+    if let node = self as? SKShapeNode {
+      let physicsBody = SKPhysicsBody.init(circleOfRadius: cellRadius)
+      physicsBody.categoryBitMask = PhysicsCategory.Cell
+      physicsBody.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
+
+      let temp: CGFloat = 1.0
+      physicsBody.friction = temp
+      physicsBody.mass = temp
+      physicsBody.density = temp
+
+      node.physicsBody = physicsBody
+    }
+
 
     fillColor = Self.color
     strokeColor = life.color
@@ -84,7 +93,7 @@ extension Cell {
   }
 
   func appendCell(childCell: SKShapeNode, rotate: CGFloat) {
-    let length     = cellRadius * 3
+    let length     = cellRadius * 2
     let radius     = CGFloat.pi / 3
     let spawnPoint = CGPoint(x: self.position.x - length * sin(radius * rotate), y: self.position.y + length * cos(radius * rotate))
 
@@ -94,10 +103,15 @@ extension Cell {
     }
     world.addChild(childCell)
 
-    let joint = SKPhysicsJointLimit.joint(withBodyA: physicsBody!, bodyB: childCell.physicsBody!,
-                                          anchorA: position, anchorB: childCell.position)
-    self.joints.append(joint)
-    world.physicsWorld.add(joint)
+    if let node = self as? SKShapeNode {
+      let joint = SKPhysicsJointSpring.joint(withBodyA: node.physicsBody!, bodyB: childCell.physicsBody!,
+                                             anchorA: position, anchorB: childCell.position)
+      self.joints.append(joint)
+      world.physicsWorld.add(joint)
+    }
+    else {
+      fatalError()
+    }
   }
 
   func kill() {
@@ -174,7 +188,7 @@ class WallCell: SKShapeNode, Cell {
 class GreenCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
-  static var growthLimit: Int = 6
+  static var growthLimit: Int = 5
   static var color            = SCNColor.green
   var growthCount: Int = 0
   static let growthEnergy: CGFloat = 10
@@ -187,11 +201,11 @@ class GreenCell: SKShapeNode, Cell {
   func work() {
     let distance = distanceBetween(first: self.position, second: CGPoint.zero)
     energy += { () -> CGFloat in
-      let MaxGenerateEnergy: CGFloat = 100
+      let MaxGenerateEnergy: CGFloat = 10
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return MaxGenerateEnergy / (distance)
+      return MaxGenerateEnergy / (distance * 0.05)
     }()
   }
 
@@ -237,6 +251,15 @@ class BreedCell: BaseCell {
       cell.energy = workEnergy
       energy -= workEnergy
       world.appendLife(life: life, cell: cell)
+
+      let velocity: CGFloat = 3.0
+      let radius     = CGFloat.pi / 3
+      let rotate = CGFloat.random(in: 0...5)
+
+      let x = (self.position.x - sin(radius * rotate)) * velocity
+      let y = (self.position.y + cos(radius * rotate)) * velocity
+
+      cell.physicsBody!.velocity = CGVector.init(dx: x, dy: y)
     }
   }
 
@@ -246,7 +269,7 @@ class BreedCell: BaseCell {
 }
 
 class Gene {
-  var lifespan = 100
+  var lifespan = 80
   var ticket   = 0
   var alive:     Bool {
     return ticket < lifespan
