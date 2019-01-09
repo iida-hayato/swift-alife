@@ -99,9 +99,22 @@ class World: SKScene {
   }
 
   override func update(_ currentTime: TimeInterval) {
+    if last == nil {
+      last = currentTime
+    }
+
+    guard last! + interval <= currentTime else {
+      return
+    }
+
+    last = currentTime
+
     lives.forEach({ $0.value.update(currentTime) })
   }
 }
+
+var last: TimeInterval?
+let interval: TimeInterval = 0.1
 
 let cellRadius: CGFloat = 10
 
@@ -111,12 +124,14 @@ class Life {
   var color: SCNColor
   unowned let world: World
   let name: String
+  var rootCell: Cell
 
   init(world: World, cell: Cell, gene: Gene) {
     self.world = world
     self.gene = gene
     self.name = UUID().uuidString
     self.color = SCNColor.init(red: CGFloat(drand48()), green: CGFloat(drand48()), blue: CGFloat(drand48()), alpha: 1.0)
+    self.rootCell = cell
   }
 
   func update(_ currentTime: TimeInterval) {
