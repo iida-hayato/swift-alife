@@ -294,18 +294,24 @@ class BreedCell: BaseCell {
 }
 
 class Gene {
-  let primeGeneLength = 8
+  let primeGeneLength = 10
   var geneLength:Int {
     return Int(code.count / 8)
   }
   var code : [UInt8] = [
-    1,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    2,0,0,0,0,0,0,0,
+    1,10,0,0,0,0,0,0,0,0, // rootCell
+    0,70,0,0,0,0,0,0,0,0, // rootCell.child[0] == Cell[1]
+    0,70,0,0,0,0,0,0,0,0, // rootCell.child[1]
+    0,70,0,0,0,0,0,0,0,0, // rootCell.child[2]
+    0,70,0,0,0,0,0,0,0,0, // rootCell.child[3]
+    0,70,0,0,0,0,0,0,0,0, // rootCell.child[4]
+    0,70,0,0,0,0,0,0,0,0, // rootCell.child[5]
+    2,0,0,0,0,0,0,0,0,0, // Cell[1].child[0]
+    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[1]
+    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[2]
+    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[3]
+    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[4]
+    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[5]
     ]
 
   var lifespan = 80
