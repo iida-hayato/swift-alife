@@ -22,6 +22,7 @@ protocol Cell: class {
   var world:       World! { get set }
   var life:        Life! { get set }
   var growthCount: Int { get set }
+  var growthOrder: Int {get set}
 
   var position:    CGPoint { get set }
   var fillColor:   SCNColor { get set }
@@ -41,6 +42,8 @@ extension Cell {
     self.world = world
     self.life = life
     self.death = death
+    self.growthOrder = life.growthCount
+    life.growthCount += 1
 
     let name = UUID.init().uuidString
     self.name = name
@@ -71,6 +74,7 @@ extension Cell {
     if life.gene.canGrowth {
       if energy >= Self.growthEnergy && growthCount < Self.growthLimit && life.gene.alive {
         growthCount += 1
+        life.growthCount += 1
         nextGrowth()()
         energy -= Self.growthEnergy
       }
@@ -135,6 +139,7 @@ class DebugCell: SKShapeNode, Cell {
   var joints:     [SKPhysicsJoint] = []
   var energy:     CGFloat          = 10
   var childCells: [String: Cell]   = [:]
+  var growthOrder: Int = 0
   weak var world: World!
   weak var life:  Life!
   var growth: () -> () = { () in }
@@ -166,6 +171,7 @@ class WallCell: SKShapeNode, Cell {
   var joints:     [SKPhysicsJoint] = []
   var energy:     CGFloat          = 0
   var childCells: [String: Cell]   = [:]
+  var growthOrder: Int = 0
   weak var world: World!
   weak var life:  Life!
 
@@ -195,6 +201,7 @@ class GreenCell: SKShapeNode, Cell {
   var joints:     [SKPhysicsJoint] = []
   var energy:     CGFloat          = 0
   var childCells: [String: Cell]   = [:]
+  var growthOrder: Int = 0
   weak var world: World!
   weak var life:  Life!
 
@@ -237,6 +244,7 @@ class BreedCell: BaseCell {
   var joints:     [SKPhysicsJoint] = []
   var energy:     CGFloat          = 0
   var childCells: [String: Cell]   = [:]
+  var growthOrder: Int = 0
   weak var world: World!
   weak var life:  Life!
 
@@ -297,6 +305,7 @@ class Life {
   var cells: [String: Cell] = [:]
   var gene:  Gene
   var color: SCNColor
+  var growthCount:Int = 0
   unowned let world: World
   let name: String
   var rootCell: Cell
