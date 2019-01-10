@@ -127,7 +127,52 @@ extension Cell {
     life.cells.removeValue(forKey: name!)
   }
 }
+extension Cell {
+  func nextGrowth() -> (() -> ()) {
+    let code = self.life.gene.nextCode(by: self.growthOrder)
+    if code.count < self.life.gene.primeGeneLength {
+      return nothing
+    }
+    switch code[0] {
+    case 0:
+      return { () in
+        let childCell = WallCell.init(circleOfRadius: cellRadius)
+        childCell.setup(with: self.world, life: self.life) { [weak self] in
+          if let name = childCell.name {
+            self?.childCells.removeValue(forKey: name)
+          }
+        }
+        childCell.energy = WallCell.growthEnergy / 2
+        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+      }
+    case 1:
+      return { () in
+        let childCell = WallCell.init(circleOfRadius: cellRadius)
+        childCell.setup(with: self.world, life: self.life) { [weak self] in
+          if let name = childCell.name {
+            self?.childCells.removeValue(forKey: name)
+          }
+        }
+        childCell.energy = WallCell.growthEnergy / 2
+        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+      }
+    case 2:
+      return { () in
+        let childCell = BreedCell.init(circleOfRadius: cellRadius)
+        childCell.setup(with: self.world, life: self.life) { [weak self] in
+          if let name = childCell.name {
+            self?.childCells.removeValue(forKey: name)
+          }
+        }
+        childCell.energy = BreedCell.growthEnergy / 2
+        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+      }
+    default:
+      return nothing
+    }
+  }
 
+}
 class DebugCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
@@ -177,18 +222,6 @@ class WallCell: SKShapeNode, Cell {
 
   func work() {}
 
-  func nextGrowth() -> (() -> ()) {
-    return { () in
-      let childCell = BreedCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) { [weak self] in
-        if let name = childCell.name {
-          self?.childCells.removeValue(forKey: name)
-        }
-      }
-      childCell.energy = BreedCell.growthEnergy / 2
-      self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
-    }
-  }
 }
 
 class GreenCell: SKShapeNode, Cell {
@@ -216,18 +249,6 @@ class GreenCell: SKShapeNode, Cell {
     }()
   }
 
-  func nextGrowth() -> (() -> ()) {
-    return { () in
-      let childCell = WallCell.init(circleOfRadius: cellRadius)
-      childCell.setup(with: self.world, life: self.life) { [weak self] in
-        if let name = childCell.name {
-          self?.childCells.removeValue(forKey: name)
-        }
-      }
-      childCell.energy = WallCell.growthEnergy / 2
-      self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
-    }
-  }
 }
 
 class FootCell {
@@ -270,18 +291,21 @@ class BreedCell: BaseCell {
       cell.physicsBody!.velocity = CGVector.init(dx: x, dy: y)
     }
   }
-
-  func nextGrowth() -> (() -> ()) {
-    return nothing
-  }
 }
 
 class Gene {
+  let primeGeneLength = 8
+  var geneLength:Int {
+    return Int(code.count / 8)
+  }
   var code : [UInt8] = [
-    0,0,0,0,0,0,
-    0,0,0,0,0,0,
-    0,0,0,0,0,0,
-    0,0,0,0,0,0,
+    1,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    2,0,0,0,0,0,0,0,
     ]
 
   var lifespan = 80
@@ -292,6 +316,11 @@ class Gene {
   var canGrowth: Bool {
     // 10 turn over
     return ticket > 10
+  }
+
+  func nextCode(by growthOrder:Int) -> [UInt8]{
+    let geneLoadPosition:Int = growthOrder * self.geneLength
+    return self.code.dropFirst(geneLoadPosition).map{ $0 }
   }
 }
 
