@@ -13,7 +13,6 @@ typealias BaseCell = SKShapeNode & Cell
 
 protocol Cell: class {
   static var growthEnergy: CGFloat { get }
-  static var growthLimit:  Int { get }
   static var color:        SCNColor { get }
 
   var childCells:  [String: Cell] { get set }
@@ -70,7 +69,7 @@ extension Cell {
     work()
     energy -= 0.1
     if life.gene.canGrowth {
-      if energy >= Self.growthEnergy && self.coreStatus.growthCount < Self.growthLimit && life.gene.alive {
+      if energy >= Self.growthEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive {
         nextGrowth()()
         self.coreStatus.growthCount += 1
         energy -= Self.growthEnergy
@@ -134,7 +133,7 @@ extension Cell {
     case 0:
       return { () in
         let childCell = WallCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code[1])) { [weak self] in
+        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
@@ -145,7 +144,7 @@ extension Cell {
     case 1:
       return { () in
         let childCell = WallCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code[1])) { [weak self] in
+        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
@@ -156,7 +155,7 @@ extension Cell {
     case 2:
       return { () in
         let childCell = BreedCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code[1])) { [weak self] in
+        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
@@ -172,10 +171,13 @@ extension Cell {
 }
 
 class CoreStatus {
+  static var MaxGrouthLimit = 6
   var growthCount: Int = 0
   var genePosition: Int
-  init(with genePosition:UInt8) {
-    self.genePosition = Int(genePosition)
+  var growthLimit: Int
+  init(with geneCode:[UInt8]) {
+    self.genePosition = Int(geneCode[1])
+    self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrouthLimit + 1)
   }
 }
 
@@ -183,7 +185,7 @@ class CoreStatus {
 class WallCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
-  static var growthLimit: Int = 1
+
   static var color            = SCNColor.gray
   var coreStatus: CoreStatus!
   static let growthEnergy: CGFloat = 10
@@ -200,7 +202,6 @@ class WallCell: SKShapeNode, Cell {
 class GreenCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
-  static var growthLimit: Int = 5
   static var color            = SCNColor.green
   var coreStatus: CoreStatus!
   static let growthEnergy: CGFloat = 10
@@ -230,7 +231,6 @@ class FootCell {
 class BreedCell: BaseCell {
   var death: (() -> ())!
 
-  static var growthLimit: Int = 6
   static var color            = SCNColor.orange
   var coreStatus: CoreStatus!
   static let growthEnergy: CGFloat = 10
