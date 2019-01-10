@@ -115,32 +115,3 @@ class World: SKScene {
 
 var last: TimeInterval?
 let interval: TimeInterval = 0.1
-
-let cellRadius: CGFloat = 10
-
-class Life {
-  var cells: [String: Cell] = [:]
-  var gene:  Gene
-  var color: SCNColor
-  unowned let world: World
-  let name: String
-  var rootCell: Cell
-
-  init(world: World, cell: Cell, gene: Gene) {
-    self.world = world
-    self.gene = gene
-    self.name = UUID().uuidString
-    self.color = SCNColor.init(red: CGFloat(drand48()), green: CGFloat(drand48()), blue: CGFloat(drand48()), alpha: 1.0)
-    self.rootCell = cell
-  }
-
-  func update(_ currentTime: TimeInterval) {
-    gene.ticket += 1
-    cells.forEach { $0.value.update(currentTime) }
-    if !gene.alive {
-      cells.forEach { $0.value.kill() }
-      cells.removeAll()
-      world.lives.removeValue(forKey: name)
-    }
-  }
-}
