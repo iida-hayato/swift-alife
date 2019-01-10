@@ -92,7 +92,7 @@ class World: SKScene {
   }
 
   func appendLife(life: Life, cell: Cell) {
-    cell.setup(with: self, life: life) {}
+    cell.setup(with: self, life: life,coreStatus: CoreStatus(with: life.gene.code[1])) {}
 
     lives[life.name] = life
     addChild(cell as! BaseCell)
