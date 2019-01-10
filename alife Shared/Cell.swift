@@ -269,9 +269,16 @@ class BreedCell: BaseCell {
 }
 
 class Gene {
+  var code : [UInt8] = [
+    0,0,0,0,0,0,
+    0,0,0,0,0,0,
+    0,0,0,0,0,0,
+    0,0,0,0,0,0,
+    ]
+
   var lifespan = 80
   var ticket   = 0
-  var alive:     Bool {
+  var alive: Bool {
     return ticket < lifespan
   }
   var canGrowth: Bool {
@@ -279,7 +286,6 @@ class Gene {
     return ticket > 10
   }
 }
-
 
 func distanceBetween(first: CGPoint, second: CGPoint) -> CGFloat {
   return CGFloat(hypotf(Float(second.x - first.x), Float(second.y - first.y)));
