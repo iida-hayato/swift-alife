@@ -129,7 +129,7 @@ extension Cell {
     if code.count < self.life.gene.primeGeneLength {
       return nothing
     }
-    switch code[0] {
+    switch code[0] % 4 {
     case 0:
       return { () in
         let childCell = WallCell.init(circleOfRadius: cellRadius)
@@ -171,14 +171,14 @@ extension Cell {
 }
 
 class CoreStatus {
-  static var MaxGrouthLimit = 6
+  static var MaxGrowthLimit = 6
   var growthCount:  Int = 0
   var genePosition: Int
   var growthLimit:  Int
 
   init(with geneCode: [UInt8]) {
     self.genePosition = Int(geneCode[1])
-    self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrouthLimit + 1)
+    self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrowthLimit + 1)
   }
 }
 
@@ -247,7 +247,7 @@ class BreedCell: BaseCell {
     if energy > workEnergy {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
-      let life = Life.init(world: self.world, cell: cell, gene: Gene())
+      let life = Life.init(world: self.world, cell: cell, gene: Gene(code: self.life.gene.mutatedCode))
       cell.position = position
       cell.energy = workEnergy
       energy -= workEnergy
@@ -266,14 +266,14 @@ class BreedCell: BaseCell {
 }
 
 class Gene {
-  let primeGeneLength         = 10
+  let primeGeneLength = 10
   var cellGeneLength: Int {
     return 6 * self.primeGeneLength
   }
   var geneLength:     Int {
     return Int(code.count / 8)
   }
-  var code:           [UInt8] = [
+  static var sampleCode: [UInt8] = [
     // Cellの種類,子セルのGene参照先,子供を生む数
     1, 1, 6, 0, 0, 0, 0, 0, 0, 0, // rootCell
     0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
@@ -289,6 +289,11 @@ class Gene {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[4]
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[5]
   ]
+  var code: [UInt8]
+
+  init(code: [UInt8]) {
+    self.code = code
+  }
 
   var lifespan = 80
   var ticket   = 0
@@ -301,8 +306,19 @@ class Gene {
   }
 
   func nextCode(by genePosition: Int, growthCount: Int) -> [UInt8] {
-    let geneLoadPosition: Int = (genePosition + growthCount) * primeGeneLength
+    let geneLoadPosition: Int = ((genePosition + growthCount) * primeGeneLength) % (code.count + 1)
     return self.code.dropFirst(geneLoadPosition).map { $0 }
+  }
+
+  // DEBUG
+  var mutationRate = 10
+  var mutatedCode: [UInt8] {
+    return code.map { byte -> UInt8 in
+      if UInt8.random(in: 0..<100) <= self.mutationRate {
+        return UInt8.random(in: UInt8.min...UInt8.max)
+      }
+      return byte
+    }
   }
 }
 
