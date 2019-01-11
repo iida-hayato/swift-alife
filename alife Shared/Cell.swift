@@ -171,14 +171,14 @@ extension Cell {
 }
 
 class CoreStatus {
-  static var MaxGrouthLimit = 6
+  static var MaxGrowthLimit = 6
   var growthCount:  Int = 0
   var genePosition: Int
   var growthLimit:  Int
 
   init(with geneCode: [UInt8]) {
     self.genePosition = Int(geneCode[1])
-    self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrouthLimit + 1)
+    self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrowthLimit + 1)
   }
 }
 
