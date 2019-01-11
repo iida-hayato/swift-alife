@@ -24,6 +24,7 @@
 		0BDC806821DE515700C0D8F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC804221DE515700C0D8F9 /* Assets.xcassets */; };
 		0BDC807221DE564200C0D8F9 /* World.sks in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC807121DE564200C0D8F9 /* World.sks */; };
 		0BDC807321DE5DD200C0D8F9 /* World.sks in Resources */ = {isa = PBXBuildFile; fileRef = 0BDC807121DE564200C0D8F9 /* World.sks */; };
+		5CAE54BBDAEF07E317E1DF84 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAE5D64A048954D6E4E960C /* Util.swift */; };
 		5CAE5BE4FC862013CF5C4E0F /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAE5D64A048954D6E4E960C /* Util.swift */; };
 /* End PBXBuildFile section */
 
@@ -241,6 +242,7 @@
 				0BD6623821E1155000271E3B /* Cell.swift in Sources */,
 				0BDC806421DE515700C0D8F9 /* GameController.swift in Sources */,
 				0BDC805C21DE515700C0D8F9 /* AppDelegate.swift in Sources */,
+				5CAE54BBDAEF07E317E1DF84 /* Util.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
