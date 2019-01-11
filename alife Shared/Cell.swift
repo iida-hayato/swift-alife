@@ -15,12 +15,12 @@ protocol Cell: class {
   static var growthEnergy: CGFloat { get }
   static var color:        SCNColor { get }
 
-  var childCells:  [String: Cell] { get set }
-  var joints:      [SKPhysicsJoint] { get set }
-  var energy:      CGFloat { get set }
-  var world:       World! { get set }
-  var life:        Life! { get set }
-  var coreStatus: CoreStatus! {get set}
+  var childCells: [String: Cell] { get set }
+  var joints:     [SKPhysicsJoint] { get set }
+  var energy:     CGFloat { get set }
+  var world:      World! { get set }
+  var life:       Life! { get set }
+  var coreStatus: CoreStatus! { get set }
 
   var position:    CGPoint { get set }
   var fillColor:   SCNColor { get set }
@@ -28,7 +28,7 @@ protocol Cell: class {
   func removeFromParent()
   var name: String? { get set }
 
-  func setup(with world: World, life: Life,coreStatus: CoreStatus, death: @escaping () -> ())
+  func setup(with world: World, life: Life, coreStatus: CoreStatus, death: @escaping () -> ())
   func update(_ currentTime: TimeInterval)
   func work()
   func nextGrowth() -> (() -> ())
@@ -36,7 +36,7 @@ protocol Cell: class {
 }
 
 extension Cell {
-  func setup(with world: World, life: Life,coreStatus: CoreStatus, death: @escaping () -> ()) {
+  func setup(with world: World, life: Life, coreStatus: CoreStatus, death: @escaping () -> ()) {
     self.world = world
     self.life = life
     self.coreStatus = coreStatus
@@ -108,8 +108,7 @@ extension Cell {
                                              anchorA: position, anchorB: childCell.position)
       self.joints.append(joint)
       world.physicsWorld.add(joint)
-    }
-    else {
+    } else {
       fatalError()
     }
   }
@@ -123,17 +122,18 @@ extension Cell {
     life.cells.removeValue(forKey: name!)
   }
 }
+
 extension Cell {
   func nextGrowth() -> (() -> ()) {
     let code = self.life.gene.nextCode(by: self.coreStatus.genePosition, growthCount: self.coreStatus.growthCount)
     if code.count < self.life.gene.primeGeneLength {
       return nothing
     }
-    switch code[0] {
+    switch code[0] % 4 {
     case 0:
       return { () in
         let childCell = WallCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code)) { [weak self] in
+        childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
@@ -144,7 +144,7 @@ extension Cell {
     case 1:
       return { () in
         let childCell = WallCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code)) { [weak self] in
+        childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
@@ -155,7 +155,7 @@ extension Cell {
     case 2:
       return { () in
         let childCell = BreedCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life,coreStatus: CoreStatus(with: code)) { [weak self] in
+        childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
@@ -172,10 +172,11 @@ extension Cell {
 
 class CoreStatus {
   static var MaxGrouthLimit = 6
-  var growthCount: Int = 0
+  var growthCount:  Int = 0
   var genePosition: Int
-  var growthLimit: Int
-  init(with geneCode:[UInt8]) {
+  var growthLimit:  Int
+
+  init(with geneCode: [UInt8]) {
     self.genePosition = Int(geneCode[1])
     self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrouthLimit + 1)
   }
@@ -186,7 +187,7 @@ class WallCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
 
-  static var color            = SCNColor.gray
+  static var color = SCNColor.gray
   var coreStatus: CoreStatus!
   static let growthEnergy: CGFloat = 10
   var joints:     [SKPhysicsJoint] = []
@@ -202,7 +203,7 @@ class WallCell: SKShapeNode, Cell {
 class GreenCell: SKShapeNode, Cell {
   var death: (() -> ())!
 
-  static var color            = SCNColor.green
+  static var color = SCNColor.green
   var coreStatus: CoreStatus!
   static let growthEnergy: CGFloat = 10
   var joints:     [SKPhysicsJoint] = []
@@ -231,7 +232,7 @@ class FootCell {
 class BreedCell: BaseCell {
   var death: (() -> ())!
 
-  static var color            = SCNColor.orange
+  static var color = SCNColor.orange
   var coreStatus: CoreStatus!
   static let growthEnergy: CGFloat = 10
   var joints:     [SKPhysicsJoint] = []
@@ -246,15 +247,15 @@ class BreedCell: BaseCell {
     if energy > workEnergy {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
-      let life = Life.init(world: self.world, cell: cell, gene: Gene())
+      let life = Life.init(world: self.world, cell: cell, gene: Gene(code: self.life.gene.mutatedCode))
       cell.position = position
       cell.energy = workEnergy
       energy -= workEnergy
       world.appendLife(life: life, cell: cell)
 
       let velocity: CGFloat = 3.0
-      let radius     = CGFloat.pi / 3
-      let rotate = CGFloat.random(in: 0...5)
+      let radius            = CGFloat.pi / 3
+      let rotate            = CGFloat.random(in: 0...5)
 
       let x = (self.position.x - sin(radius * rotate)) * velocity
       let y = (self.position.y + cos(radius * rotate)) * velocity
@@ -266,32 +267,37 @@ class BreedCell: BaseCell {
 
 class Gene {
   let primeGeneLength = 10
-  var cellGeneLength:Int {
-     return 6 * self.primeGeneLength
+  var cellGeneLength: Int {
+    return 6 * self.primeGeneLength
   }
-  var geneLength:Int {
+  var geneLength:     Int {
     return Int(code.count / 8)
   }
-  var code : [UInt8] = [
+  static var sampleCode: [UInt8] = [
     // Cellの種類,子セルのGene参照先,子供を生む数
-    1,1,6,0,0,0,0,0,0,0, // rootCell
-    0,7,1,0,0,0,0,0,0,0, // rootCell.child[0] == Cell[1]
-    0,7,1,0,0,0,0,0,0,0, // rootCell.child[1]
-    0,7,1,0,0,0,0,0,0,0, // rootCell.child[2]
-    0,7,1,0,0,0,0,0,0,0, // rootCell.child[3]
-    0,7,1,0,0,0,0,0,0,0, // rootCell.child[4]
-    0,7,1,0,0,0,0,0,0,0, // rootCell.child[5]
-    2,0,0,0,0,0,0,0,0,0, // Cell[1].child[0]
-    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[1]
-    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[2]
-    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[3]
-    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[4]
-    0,0,0,0,0,0,0,0,0,0, // Cell[1].child[5]
-    ]
+    1, 1, 6, 0, 0, 0, 0, 0, 0, 0, // rootCell
+    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
+    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[1]
+    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[2]
+    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[3]
+    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[4]
+    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[5]
+    2, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[0]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[1]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[2]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[3]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[4]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[5]
+  ]
+  var code: [UInt8]
+
+  init(code: [UInt8]) {
+    self.code = code
+  }
 
   var lifespan = 80
   var ticket   = 0
-  var alive: Bool {
+  var alive:     Bool {
     return ticket < lifespan
   }
   var canGrowth: Bool {
@@ -299,9 +305,20 @@ class Gene {
     return ticket > 10
   }
 
-  func nextCode(by genePosition:Int, growthCount:Int) -> [UInt8] {
-    let geneLoadPosition:Int = (genePosition + growthCount) * primeGeneLength
-    return self.code.dropFirst(geneLoadPosition).map{ $0 }
+  func nextCode(by genePosition: Int, growthCount: Int) -> [UInt8] {
+    let geneLoadPosition: Int = ((genePosition + growthCount) * primeGeneLength) % (code.count + 1)
+    return self.code.dropFirst(geneLoadPosition).map { $0 }
+  }
+
+  // DEBUG
+  var mutationRate = 10
+  var mutatedCode: [UInt8] {
+    return code.map { byte -> UInt8 in
+      if UInt8.random(in: 0..<100) <= self.mutationRate {
+        return UInt8.random(in: UInt8.min...UInt8.max)
+      }
+      return byte
+    }
   }
 }
 
@@ -316,7 +333,7 @@ class Life {
   var gene:  Gene
   var color: SCNColor
   unowned let world: World
-  let name: String
+  let name:     String
   var rootCell: Cell
 
   init(world: World, cell: Cell, gene: Gene) {

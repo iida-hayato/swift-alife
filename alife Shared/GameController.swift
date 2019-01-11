@@ -81,7 +81,7 @@ class World: SKScene {
     physicsWorld.gravity = CGVector.zero
 
     let cell = GreenCell.init(circleOfRadius: cellRadius)
-    let life = Life(world: self, cell: cell, gene: Gene())
+    let life = Life(world: self, cell: cell, gene: Gene(code: Gene.sampleCode))
 
     cell.position = CGPoint.zero
     cell.energy = 1
