@@ -92,7 +92,7 @@ class World: SKScene {
   }
 
   func appendLife(life: Life, cell: Cell) {
-    cell.setup(with: self, life: life,coreStatus: CoreStatus(with: life.gene.code)) {}
+    cell.setup(with: self, life: life, coreStatus: CoreStatus(with: life.gene.code)) {}
 
     lives[life.name] = life
     addChild(cell as! BaseCell)
@@ -113,5 +113,5 @@ class World: SKScene {
   }
 }
 
-var last: TimeInterval?
+var last:     TimeInterval?
 let interval: TimeInterval = 0.1
