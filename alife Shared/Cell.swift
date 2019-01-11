@@ -261,6 +261,7 @@ class BreedCell: BaseCell {
       let y = (self.position.y + cos(radius * rotate)) * velocity
 
       cell.physicsBody!.velocity = CGVector.init(dx: x, dy: y)
+
     }
   }
 }
@@ -322,9 +323,6 @@ class Gene {
   }
 }
 
-func distanceBetween(first: CGPoint, second: CGPoint) -> CGFloat {
-  return CGFloat(hypotf(Float(second.x - first.x), Float(second.y - first.y)));
-}
 
 let cellRadius: CGFloat = 10
 
