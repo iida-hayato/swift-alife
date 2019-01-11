@@ -253,7 +253,7 @@ class BreedCell: BaseCell {
       energy -= workEnergy
       world.appendLife(life: life, cell: cell)
 
-      let velocity: CGFloat = 3.0
+      let velocity: CGFloat = CGFloat.random(in: 0.0...3.0)
       let radius            = CGFloat.pi / 3
       let rotate            = CGFloat.random(in: 0...5)
 
