@@ -53,7 +53,13 @@ struct PhysicsCategory {
 }
 
 class World: SKScene {
-  var lives:   [String: Life] = [:]
+  var lives: [String: Life] = [:]
+
+  class Sun {
+    var position: CGPoint = CGPoint.zero
+  }
+
+  var sun = Sun()
   var hudNode: SCNNode {
     let plane    = SCNPlane(width: 5, height: 5)
     let material = SCNMaterial()

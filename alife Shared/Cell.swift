@@ -213,7 +213,7 @@ class GreenCell: SKShapeNode, Cell {
   weak var life:  Life!
 
   func work() {
-    let distance = distanceBetween(from: self.position, to: CGPoint.zero)
+    let distance = distanceBetween(from: self.position, to: world.sun.position)
     energy += { () -> CGFloat in
       let MaxGenerateEnergy: CGFloat = 10
       if distance <= 1 {
