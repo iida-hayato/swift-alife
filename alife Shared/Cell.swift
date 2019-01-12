@@ -251,20 +251,35 @@ class BreedCell: BaseCell {
   weak var world: World!
   weak var life:  Life!
 
-  var workEnergy: CGFloat = 10
+  var property: BreedCellProperty!
+
+  class BreedCellProperty {
+    var childLifeInitialEnergy:    CGFloat
+    var childLifeVelocityRotation: CGFloat
+    var childLifeVelocityPower:    CGFloat
+
+    init(with code: [UInt8]) {
+      self.childLifeInitialEnergy = CGFloat(code[5])
+      self.childLifeVelocityRotation = CGFloat(code[6])
+      self.childLifeVelocityPower = CGFloat(code[7]) * 10
+    }
+  }
 
   func work() {
-    if energy > workEnergy {
+    if self.property == nil {
+      property = BreedCellProperty(with: life.gene.code)
+    }
+    if energy > property.childLifeInitialEnergy + GreenCell.growthEnergy {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
       let life = Life.init(world: self.world, cell: cell, gene: Gene(code: self.life.gene.mutatedCode))
       cell.position = position
-      cell.energy = workEnergy
-      energy -= workEnergy
+      cell.energy = property.childLifeInitialEnergy
+      energy -= property.childLifeInitialEnergy + GreenCell.growthEnergy
       world.appendLife(life: life, cell: cell)
 
-      let velocity: CGFloat = 1000
-      let rotate            = CGFloat.random(in: 0...5)
+      let velocity: CGFloat = property.childLifeVelocityPower
+      let rotate:   CGFloat = property.childLifeVelocityRotation
 
       let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: velocity)
       cell.physicsBody!.velocity = CGVector.init(dx: rotatedPoint.x, dy: rotatedPoint.y)
@@ -283,19 +298,19 @@ class Gene {
   }
   static var sampleCode: [UInt8] = [
     // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,分裂細胞の初期エネルギー
-    1, 1, 6, 3, 10, 0, 0, 0, 0, 0, // rootCell
-    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
-    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[1]
-    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[2]
-    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[3]
-    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[4]
-    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[5]
-    2, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[0]
-    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[1]
-    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[2]
-    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[3]
-    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[4]
-    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[5]
+    1, 1, 6, 3, 10, 10, 100, 0, 0, 0, // rootCell
+    0, 7, 1, 3, 10, 10, 100, 0, 0, 0, // rootCell.child[0] == Cell[1]
+    0, 7, 1, 3, 10, 10, 100, 0, 0, 0, // rootCell.child[1]
+    0, 7, 1, 3, 10, 10, 100, 0, 0, 0, // rootCell.child[2]
+    0, 7, 1, 3, 10, 10, 100, 0, 0, 0, // rootCell.child[3]
+    0, 7, 1, 3, 10, 10, 100, 0, 0, 0, // rootCell.child[4]
+    0, 7, 1, 3, 10, 10, 100, 0, 0, 0, // rootCell.child[5]
+    2, 0, 0, 3, 10, 10, 100, 0, 0, 0, // Cell[1].child[0]
+    0, 0, 0, 3, 10, 10, 100, 0, 0, 0, // Cell[1].child[1]
+    0, 0, 0, 3, 10, 10, 100, 0, 0, 0, // Cell[1].child[2]
+    0, 0, 0, 3, 10, 10, 100, 0, 0, 0, // Cell[1].child[3]
+    0, 0, 0, 3, 10, 10, 100, 0, 0, 0, // Cell[1].child[4]
+    0, 0, 0, 3, 10, 10, 100, 0, 0, 0, // Cell[1].child[5]
   ]
   var code: [UInt8]
 
