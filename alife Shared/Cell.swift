@@ -69,10 +69,10 @@ extension Cell {
     work()
     energy -= 0.1
     if life.gene.canGrowth {
-      if energy >= Self.growthEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive {
+      if energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive {
         nextGrowth()()
         self.coreStatus.growthCount += 1
-        energy -= Self.growthEnergy
+        energy -= Self.growthEnergy + self.coreStatus.childCellInitialEnergy
       }
     }
     if energy > CGFloat(childCells.count) {
@@ -144,18 +144,18 @@ extension Cell {
             self?.childCells.removeValue(forKey: name)
           }
         }
-        childCell.energy = WallCell.growthEnergy / 2
+        childCell.energy += self.coreStatus.childCellInitialEnergy
         self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     case 1:
       return { () in
-        let childCell = WallCell.init(circleOfRadius: cellRadius)
+        let childCell = GreenCell.init(circleOfRadius: cellRadius)
         childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
         }
-        childCell.energy = WallCell.growthEnergy / 2
+        childCell.energy += self.coreStatus.childCellInitialEnergy
         self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     case 2:
@@ -166,7 +166,7 @@ extension Cell {
             self?.childCells.removeValue(forKey: name)
           }
         }
-        childCell.energy = BreedCell.growthEnergy / 2
+        childCell.energy += self.coreStatus.childCellInitialEnergy
         self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     default:
@@ -178,15 +178,17 @@ extension Cell {
 
 class CoreStatus {
   static var MaxGrowthLimit = 6
-  var growthCount:    Int = 0
-  var genePosition:   Int
-  var growthLimit:    Int
-  var growthRotation: CGFloat
+  var growthCount:            Int = 0
+  var genePosition:           Int
+  var growthLimit:            Int
+  var growthRotation:         CGFloat
+  var childCellInitialEnergy: CGFloat
 
   init(with geneCode: [UInt8]) {
     self.genePosition = Int(geneCode[1])
     self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrowthLimit + 1)
     self.growthRotation = CGFloat(geneCode[3])
+    self.childCellInitialEnergy = CGFloat(geneCode[4])
   }
 }
 
@@ -280,20 +282,20 @@ class Gene {
     return Int(code.count / 8)
   }
   static var sampleCode: [UInt8] = [
-    // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,
-    1, 1, 6, 3, 0, 0, 0, 0, 0, 0, // rootCell
-    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
-    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[1]
-    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[2]
-    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[3]
-    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[4]
-    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[5]
-    2, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[0]
-    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[1]
-    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[2]
-    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[3]
-    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[4]
-    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[5]
+    // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,分裂細胞の初期エネルギー
+    1, 1, 6, 3, 10, 0, 0, 0, 0, 0, // rootCell
+    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
+    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[1]
+    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[2]
+    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[3]
+    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[4]
+    0, 7, 1, 3, 10, 0, 0, 0, 0, 0, // rootCell.child[5]
+    2, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[0]
+    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[1]
+    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[2]
+    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[3]
+    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[4]
+    0, 0, 0, 3, 10, 0, 0, 0, 0, 0, // Cell[1].child[5]
   ]
   var code: [UInt8]
 
