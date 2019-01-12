@@ -92,10 +92,16 @@ extension Cell {
     }
   }
 
+  func adjustRotatedPoint(rotate: CGFloat, distance: CGFloat = 1, baseRadian: CGFloat = CGFloat.pi / 3) -> CGPoint {
+    let radian = radianBetween(from: self.position, to: world.sun.position)
+    return CGPoint(x: distance * (cos(baseRadian * rotate + radian)),
+                   y: distance * (sin(baseRadian * rotate + radian)))
+  }
+
   func appendCell(childCell: SKShapeNode, rotate: CGFloat) {
-    let length     = cellRadius * 2
-    let radius     = CGFloat.pi / 3
-    let spawnPoint = CGPoint(x: self.position.x - length * sin(radius * rotate), y: self.position.y + length * cos(radius * rotate))
+    let length       = cellRadius * 2
+    let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: length)
+    let spawnPoint   = CGPoint(x: self.position.x + rotatedPoint.x, y: self.position.y + rotatedPoint.y)
 
     childCell.position = spawnPoint
     if let name = childCell.name {
@@ -139,7 +145,7 @@ extension Cell {
           }
         }
         childCell.energy = WallCell.growthEnergy / 2
-        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     case 1:
       return { () in
@@ -150,7 +156,7 @@ extension Cell {
           }
         }
         childCell.energy = WallCell.growthEnergy / 2
-        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     case 2:
       return { () in
@@ -161,7 +167,7 @@ extension Cell {
           }
         }
         childCell.energy = BreedCell.growthEnergy / 2
-        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     default:
       return nothing
@@ -172,13 +178,15 @@ extension Cell {
 
 class CoreStatus {
   static var MaxGrowthLimit = 6
-  var growthCount:  Int = 0
-  var genePosition: Int
-  var growthLimit:  Int
+  var growthCount:    Int = 0
+  var genePosition:   Int
+  var growthLimit:    Int
+  var growthRotation: CGFloat
 
   init(with geneCode: [UInt8]) {
     self.genePosition = Int(geneCode[1])
     self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrowthLimit + 1)
+    self.growthRotation = CGFloat(geneCode[3])
   }
 }
 
@@ -213,7 +221,7 @@ class GreenCell: SKShapeNode, Cell {
   weak var life:  Life!
 
   func work() {
-    let distance = distanceBetween(first: self.position, second: CGPoint.zero)
+    let distance = distanceBetween(from: self.position, to: world.sun.position)
     energy += { () -> CGFloat in
       let MaxGenerateEnergy: CGFloat = 10
       if distance <= 1 {
@@ -253,14 +261,12 @@ class BreedCell: BaseCell {
       energy -= workEnergy
       world.appendLife(life: life, cell: cell)
 
-      let velocity: CGFloat = CGFloat.random(in: 0.0...3.0)
-      let radius            = CGFloat.pi / 3
+      let velocity: CGFloat = 1000
       let rotate            = CGFloat.random(in: 0...5)
 
-      let x = (self.position.x - sin(radius * rotate)) * velocity
-      let y = (self.position.y + cos(radius * rotate)) * velocity
+      let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: velocity)
+      cell.physicsBody!.velocity = CGVector.init(dx: rotatedPoint.x, dy: rotatedPoint.y)
 
-      cell.physicsBody!.velocity = CGVector.init(dx: x, dy: y)
     }
   }
 }
@@ -274,20 +280,20 @@ class Gene {
     return Int(code.count / 8)
   }
   static var sampleCode: [UInt8] = [
-    // Cellの種類,子セルのGene参照先,子供を生む数
-    1, 1, 6, 0, 0, 0, 0, 0, 0, 0, // rootCell
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[1]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[2]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[3]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[4]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[5]
-    2, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[0]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[1]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[2]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[3]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[4]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[5]
+    // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,
+    1, 1, 6, 3, 0, 0, 0, 0, 0, 0, // rootCell
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[1]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[2]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[3]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[4]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[5]
+    2, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[0]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[1]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[2]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[3]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[4]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[5]
   ]
   var code: [UInt8]
 
@@ -322,9 +328,6 @@ class Gene {
   }
 }
 
-func distanceBetween(first: CGPoint, second: CGPoint) -> CGFloat {
-  return CGFloat(hypotf(Float(second.x - first.x), Float(second.y - first.y)));
-}
 
 let cellRadius: CGFloat = 10
 
