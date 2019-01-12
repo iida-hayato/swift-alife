@@ -92,10 +92,16 @@ extension Cell {
     }
   }
 
+  func adjustRotatedPoint(rotate: CGFloat, distance: CGFloat = 1, baseRadian: CGFloat = CGFloat.pi / 3) -> CGPoint {
+    let radian           = radianBetween(from: self.position, to: world.sun.position)
+    return CGPoint(x: distance * (cos(baseRadian * rotate + radian)),
+                   y: distance * (sin(baseRadian * rotate + radian)))
+  }
+
   func appendCell(childCell: SKShapeNode, rotate: CGFloat) {
-    let length     = cellRadius * 2
-    let radius     = CGFloat.pi / 3
-    let spawnPoint = CGPoint(x: self.position.x - length * sin(radius * rotate), y: self.position.y + length * cos(radius * rotate))
+    let length       = cellRadius * 2
+    let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: length)
+    let spawnPoint   = CGPoint(x: self.position.x + rotatedPoint.x, y: self.position.y + rotatedPoint.y)
 
     childCell.position = spawnPoint
     if let name = childCell.name {
@@ -254,13 +260,10 @@ class BreedCell: BaseCell {
       world.appendLife(life: life, cell: cell)
 
       let velocity: CGFloat = 1000
-      let radius            = CGFloat.pi / 3
       let rotate            = CGFloat.random(in: 0...5)
 
-      let x = sin(radius * rotate) * velocity
-      let y = cos(radius * rotate) * velocity
-
-      cell.physicsBody!.velocity = CGVector.init(dx: x, dy: y)
+      let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: velocity)
+      cell.physicsBody!.velocity = CGVector.init(dx: rotatedPoint.x, dy: rotatedPoint.y)
 
     }
   }
