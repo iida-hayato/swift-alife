@@ -93,7 +93,7 @@ extension Cell {
   }
 
   func adjustRotatedPoint(rotate: CGFloat, distance: CGFloat = 1, baseRadian: CGFloat = CGFloat.pi / 3) -> CGPoint {
-    let radian           = radianBetween(from: self.position, to: world.sun.position)
+    let radian = radianBetween(from: self.position, to: world.sun.position)
     return CGPoint(x: distance * (cos(baseRadian * rotate + radian)),
                    y: distance * (sin(baseRadian * rotate + radian)))
   }
@@ -145,7 +145,7 @@ extension Cell {
           }
         }
         childCell.energy = WallCell.growthEnergy / 2
-        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     case 1:
       return { () in
@@ -156,7 +156,7 @@ extension Cell {
           }
         }
         childCell.energy = WallCell.growthEnergy / 2
-        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     case 2:
       return { () in
@@ -167,7 +167,7 @@ extension Cell {
           }
         }
         childCell.energy = BreedCell.growthEnergy / 2
-        self.appendCell(childCell: childCell, rotate: CGFloat.random(in: 0...5))
+        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
       }
     default:
       return nothing
@@ -178,13 +178,15 @@ extension Cell {
 
 class CoreStatus {
   static var MaxGrowthLimit = 6
-  var growthCount:  Int = 0
-  var genePosition: Int
-  var growthLimit:  Int
+  var growthCount:    Int = 0
+  var genePosition:   Int
+  var growthLimit:    Int
+  var growthRotation: CGFloat
 
   init(with geneCode: [UInt8]) {
     self.genePosition = Int(geneCode[1])
     self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrowthLimit + 1)
+    self.growthRotation = CGFloat(geneCode[3])
   }
 }
 
@@ -278,20 +280,20 @@ class Gene {
     return Int(code.count / 8)
   }
   static var sampleCode: [UInt8] = [
-    // Cellの種類,子セルのGene参照先,子供を生む数
-    1, 1, 6, 0, 0, 0, 0, 0, 0, 0, // rootCell
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[1]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[2]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[3]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[4]
-    0, 7, 1, 0, 0, 0, 0, 0, 0, 0, // rootCell.child[5]
-    2, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[0]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[1]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[2]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[3]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[4]
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Cell[1].child[5]
+    // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,
+    1, 1, 6, 3, 0, 0, 0, 0, 0, 0, // rootCell
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[0] == Cell[1]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[1]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[2]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[3]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[4]
+    0, 7, 1, 3, 0, 0, 0, 0, 0, 0, // rootCell.child[5]
+    2, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[0]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[1]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[2]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[3]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[4]
+    0, 0, 0, 3, 0, 0, 0, 0, 0, 0, // Cell[1].child[5]
   ]
   var code: [UInt8]
 
