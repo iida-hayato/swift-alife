@@ -152,25 +152,27 @@ extension Cell {
       return
     }
     guard let childCell = { () -> Cell? in
-    switch code[0] % 4 {
-    case 0:
+      switch code[0] % 4 {
+      case 0:
         return WallCell.init(circleOfRadius: cellRadius)
-    case 1:
+      case 1:
         return GreenCell.init(circleOfRadius: cellRadius)
       case 2:
         return BreedCell.init(circleOfRadius: cellRadius)
+      case 3:
+        return TankCell.init(circleOfRadius: cellRadius)
       default:
         return nil
-        }
+      }
     }() else {
       return
+    }
+    childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
+      if let name = childCell.name {
+        self?.childCells.removeValue(forKey: name)
       }
-        childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
-          if let name = childCell.name {
-            self?.childCells.removeValue(forKey: name)
-          }
-        }
-        childCell.energy += self.coreStatus.childCellInitialEnergy
+    }
+    childCell.energy += self.coreStatus.childCellInitialEnergy
     self.appendCell(childCell: childCell as! SKShapeNode, rotate: childCell.coreStatus.growthRotation)
   }
 
@@ -243,6 +245,23 @@ class FootCell {
 
 }
 
+class TankCell: BaseCell {
+  var death: (() -> ())!
+
+  static var color = SCNColor.yellow
+  var coreStatus: CoreStatus!
+  static let growthEnergy: CGFloat = 10
+  var joints:     [SKPhysicsJoint] = []
+  var energy:     CGFloat          = 0
+  var childCells: [String: Cell]   = [:]
+  weak var world: World!
+  weak var life:  Life!
+  var cost:               CGFloat = 1
+  var energyMoveCapacity: CGFloat = 50
+  func work() {}
+
+}
+
 class BreedCell: BaseCell {
   var death: (() -> ())!
 
@@ -311,7 +330,7 @@ class Gene {
     0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[2]
     0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[3]
     0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[4]
-    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[5]
+    3, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[5]
     2, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[0]
     0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[1]
     0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[2]
