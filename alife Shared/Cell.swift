@@ -15,13 +15,14 @@ protocol Cell: class {
   static var growthEnergy: CGFloat { get }
   static var color:        SCNColor { get }
 
-  var childCells: [String: Cell] { get set }
-  var joints:     [SKPhysicsJoint] { get set }
-  var energy:     CGFloat { get set }
-  var world:      World! { get set }
-  var life:       Life! { get set }
-  var cost: CGFloat {get set}
-  var coreStatus: CoreStatus! { get set }
+  var childCells:         [String: Cell] { get set }
+  var joints:             [SKPhysicsJoint] { get set }
+  var energy:             CGFloat { get set }
+  var world:              World! { get set }
+  var life:               Life! { get set }
+  var cost:               CGFloat { get set }
+  var energyMoveCapacity: CGFloat { get set }
+  var coreStatus:         CoreStatus! { get set }
 
   var position:    CGPoint { get set }
   var fillColor:   SCNColor { get set }
@@ -69,29 +70,43 @@ extension Cell {
   func update(_ currentTime: TimeInterval) {
     work()
     energy -= cost
-    if life.gene.canGrowth {
-      if energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive {
-        nextGrowth()()
-        self.coreStatus.growthCount += 1
-        energy -= Self.growthEnergy + self.coreStatus.childCellInitialEnergy
-      }
+    if canGrowth() {
+      growth()
     }
-    if energy > CGFloat(childCells.count) {
-      childCells.forEach {
-        if $0.value.energy > self.energy + 1.1 {
-          self.energy += 1
-          $0.value.energy -= 1.1
-        }
-        if self.energy > $0.value.energy + 1.1 {
-          $0.value.energy += 1
-          self.energy -= 1.1
-        }
-      }
-    }
-    if energy <= 0 || !life.gene.alive {
+    moveEnergy()
+    if canKill() {
       kill()
     }
   }
+
+  private func moveEnergy() {
+    let moveCost: CGFloat = 1
+    childCells.shuffled().forEach {
+      let delta = self.energy - $0.value.energy
+      guard abs(delta) > 1 + moveCost else {
+        return
+      }
+      let moveValue          = delta / 2
+      let energyMoveCapacity = max(self.energyMoveCapacity, $0.value.energyMoveCapacity)
+      if moveValue > 0 {
+        self.energy -= min(moveValue, energyMoveCapacity) + moveCost
+        $0.value.energy += min(moveValue, energyMoveCapacity)
+      } else {
+        self.energy -= max(moveValue, -energyMoveCapacity)
+        $0.value.energy += max(moveValue, -energyMoveCapacity) - moveCost
+      }
+    }
+  }
+
+  private func canKill() -> Bool { return energy <= 0 || !life.gene.alive }
+
+  private func growth() {
+    nextGrowth()()
+    self.coreStatus.growthCount += 1
+    energy -= Self.growthEnergy + self.coreStatus.childCellInitialEnergy
+  }
+
+  private func canGrowth() -> Bool { return life.gene.canGrowth && energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive }
 
   func adjustRotatedPoint(rotate: CGFloat, distance: CGFloat = 1, baseRadian: CGFloat = CGFloat.pi / 3) -> CGPoint {
     let radian = radianBetween(from: self.position, to: world.sun.position)
@@ -206,7 +221,8 @@ class WallCell: SKShapeNode, Cell {
   var childCells: [String: Cell]   = [:]
   weak var world: World!
   weak var life:  Life!
-  var cost: CGFloat = 0.1
+  var cost:               CGFloat = 1
+  var energyMoveCapacity: CGFloat = 5
 
   func work() {}
 
@@ -223,7 +239,8 @@ class GreenCell: SKShapeNode, Cell {
   var childCells: [String: Cell]   = [:]
   weak var world: World!
   weak var life:  Life!
-  var cost: CGFloat = 3
+  var cost:               CGFloat = 3
+  var energyMoveCapacity: CGFloat = 5
 
   func work() {
     let distance = distanceBetween(from: self.position, to: world.sun.position)
@@ -232,7 +249,7 @@ class GreenCell: SKShapeNode, Cell {
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return max(MaxGenerateEnergy - (distance * 0.02),0)
+      return max(MaxGenerateEnergy - (distance * 0.02), 0)
     }()
   }
 
@@ -253,7 +270,8 @@ class BreedCell: BaseCell {
   var childCells: [String: Cell]   = [:]
   weak var world: World!
   weak var life:  Life!
-  var cost: CGFloat = 0.2
+  var cost:               CGFloat = 2
+  var energyMoveCapacity: CGFloat = 5
 
   var property: BreedCellProperty!
 
