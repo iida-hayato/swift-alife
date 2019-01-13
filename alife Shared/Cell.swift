@@ -116,7 +116,7 @@ extension Cell {
 
   func appendCell(childCell: SKShapeNode, rotate: CGFloat) {
     let length       = cellRadius * 2
-    let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: length)
+    let rotatedPoint = adjustRotatedPoint(rotate: rotate + 0.01 * CGFloat(coreStatus.growthCount), distance: length)
     let spawnPoint   = CGPoint(x: self.position.x + rotatedPoint.x, y: self.position.y + rotatedPoint.y)
 
     childCell.position = spawnPoint
