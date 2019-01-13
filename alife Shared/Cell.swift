@@ -294,7 +294,7 @@ class BreedCell: BaseCell {
     if self.property == nil {
       property = BreedCellProperty(with: life.gene.code)
     }
-    if energy > property.childLifeInitialEnergy + GreenCell.growthEnergy {
+    if energy > property.childLifeInitialEnergy + GreenCell.growthEnergy + cost {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
       let life = Life.init(world: self.world, cell: cell, gene: Gene(code: self.life.gene.mutatedCode))
