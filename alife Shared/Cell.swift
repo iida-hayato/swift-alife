@@ -33,7 +33,7 @@ protocol Cell: class {
   func setup(with world: World, life: Life, coreStatus: CoreStatus, death: @escaping () -> ())
   func update(_ currentTime: TimeInterval)
   func work()
-  func nextGrowth() -> (() -> ())
+  func nextGrowth()
   var death: (() -> ())! { get set }
 }
 
@@ -101,7 +101,7 @@ extension Cell {
   private func canKill() -> Bool { return energy <= 0 || !life.gene.alive }
 
   private func growth() {
-    nextGrowth()()
+    nextGrowth()
     self.coreStatus.growthCount += 1
     energy -= Self.growthEnergy + self.coreStatus.childCellInitialEnergy
   }
@@ -146,48 +146,32 @@ extension Cell {
 }
 
 extension Cell {
-  func nextGrowth() -> (() -> ()) {
+  func nextGrowth() {
     let code = self.life.gene.nextCode(by: self.coreStatus.genePosition, growthCount: self.coreStatus.growthCount)
     if code.count < self.life.gene.primeGeneLength {
-      return nothing
+      return
     }
+    guard let childCell = { () -> Cell? in
     switch code[0] % 4 {
     case 0:
-      return { () in
-        let childCell = WallCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
-          if let name = childCell.name {
-            self?.childCells.removeValue(forKey: name)
-          }
-        }
-        childCell.energy += self.coreStatus.childCellInitialEnergy
-        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
-      }
+        return WallCell.init(circleOfRadius: cellRadius)
     case 1:
-      return { () in
-        let childCell = GreenCell.init(circleOfRadius: cellRadius)
+        return GreenCell.init(circleOfRadius: cellRadius)
+      case 2:
+        return BreedCell.init(circleOfRadius: cellRadius)
+      default:
+        return nil
+        }
+    }() else {
+      return
+      }
         childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
           if let name = childCell.name {
             self?.childCells.removeValue(forKey: name)
           }
         }
         childCell.energy += self.coreStatus.childCellInitialEnergy
-        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
-      }
-    case 2:
-      return { () in
-        let childCell = BreedCell.init(circleOfRadius: cellRadius)
-        childCell.setup(with: self.world, life: self.life, coreStatus: CoreStatus(with: code)) { [weak self] in
-          if let name = childCell.name {
-            self?.childCells.removeValue(forKey: name)
-          }
-        }
-        childCell.energy += self.coreStatus.childCellInitialEnergy
-        self.appendCell(childCell: childCell, rotate: childCell.coreStatus.growthRotation)
-      }
-    default:
-      return nothing
-    }
+    self.appendCell(childCell: childCell as! SKShapeNode, rotate: childCell.coreStatus.growthRotation)
   }
 
 }
