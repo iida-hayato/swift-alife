@@ -87,13 +87,12 @@ extension Cell {
         return
       }
       let moveValue          = delta / 2
-      let energyMoveCapacity = max(self.energyMoveCapacity, $0.value.energyMoveCapacity)
       if moveValue > 0 {
-        self.energy -= min(moveValue, energyMoveCapacity) + moveCost
-        $0.value.energy += min(moveValue, energyMoveCapacity)
+        self.energy -= min(moveValue, $0.value.energyMoveCapacity) + moveCost
+        $0.value.energy += min(moveValue, $0.value.energyMoveCapacity)
       } else {
-        self.energy -= max(moveValue, -energyMoveCapacity)
-        $0.value.energy += max(moveValue, -energyMoveCapacity) - moveCost
+        self.energy -= max(moveValue, -self.energyMoveCapacity)
+        $0.value.energy += max(moveValue, -self.energyMoveCapacity) - moveCost
       }
     }
   }
