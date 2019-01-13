@@ -237,7 +237,7 @@ class GreenCell: SKShapeNode, Cell {
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return max(MaxGenerateEnergy - (distance * 0.02), 0)
+      return max(MaxGenerateEnergy - (distance * 0.1), 0)
     }()
   }
 
@@ -260,6 +260,7 @@ class TankCell: BaseCell {
   weak var life:  Life!
   var cost:               CGFloat = 1
   var energyMoveCapacity: CGFloat = 50
+
   func work() {}
 
 }
@@ -326,19 +327,19 @@ class Gene {
   static var sampleCode: [UInt8] = [
     // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,分裂細胞の初期エネルギー
     // ,Breed:子供の初期エネルギー,子供の射出方向,子供の射出威力
-    1, 1, 6, 3, 10, 0, 10, 100, 0, 0, // rootCell
-    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[0] == Cell[1]
-    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[1]
-    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[2]
-    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[3]
-    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[4]
-    3, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[5]
-    2, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[0]
-    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[1]
-    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[2]
-    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[3]
-    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[4]
-    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[5]
+    1, 1, 6, 3, 10, 0, 11, 100, 0, 0, // rootCell
+    0, 7, 1, 3, 10, 0, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
+    0, 7, 1, 3, 10, 0, 13, 100, 0, 0, // rootCell.child[1]
+    0, 7, 1, 3, 10, 0, 14, 100, 0, 0, // rootCell.child[2]
+    0, 7, 1, 3, 10, 0, 15, 100, 0, 0, // rootCell.child[3]
+    0, 7, 1, 3, 10, 0, 16, 100, 0, 0, // rootCell.child[4]
+    3, 7, 1, 3, 10, 0, 17, 100, 0, 0, // rootCell.child[5]
+    2, 0, 0, 3, 10, 0, 18, 10, 0, 0, // Cell[1].child[0]
+    0, 0, 0, 3, 10, 0, 19, 100, 0, 0, // Cell[1].child[1]
+    0, 0, 0, 3, 10, 0, 20, 100, 0, 0, // Cell[1].child[2]
+    0, 0, 0, 3, 10, 0, 21, 100, 0, 0, // Cell[1].child[3]
+    0, 0, 0, 3, 10, 0, 22, 100, 0, 0, // Cell[1].child[4]
+    0, 0, 0, 3, 10, 0, 23, 100, 0, 0, // Cell[1].child[5]
   ]
   var code: [UInt8]
 
@@ -346,7 +347,7 @@ class Gene {
     self.code = code
   }
 
-  var lifespan = 100
+  var lifespan = 1000
   var ticket   = 0
   var alive:     Bool {
     return ticket < lifespan
