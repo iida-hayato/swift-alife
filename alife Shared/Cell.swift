@@ -20,6 +20,7 @@ protocol Cell: class {
   var energy:     CGFloat { get set }
   var world:      World! { get set }
   var life:       Life! { get set }
+  var cost: CGFloat {get set}
   var coreStatus: CoreStatus! { get set }
 
   var position:    CGPoint { get set }
@@ -67,7 +68,7 @@ extension Cell {
 
   func update(_ currentTime: TimeInterval) {
     work()
-    energy -= 0.1
+    energy -= cost
     if life.gene.canGrowth {
       if energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive {
         nextGrowth()()
@@ -205,6 +206,7 @@ class WallCell: SKShapeNode, Cell {
   var childCells: [String: Cell]   = [:]
   weak var world: World!
   weak var life:  Life!
+  var cost: CGFloat = 0.1
 
   func work() {}
 
@@ -221,15 +223,16 @@ class GreenCell: SKShapeNode, Cell {
   var childCells: [String: Cell]   = [:]
   weak var world: World!
   weak var life:  Life!
+  var cost: CGFloat = 3
 
   func work() {
     let distance = distanceBetween(from: self.position, to: world.sun.position)
     energy += { () -> CGFloat in
-      let MaxGenerateEnergy: CGFloat = 10
+      let MaxGenerateEnergy: CGFloat = 20
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return MaxGenerateEnergy / (distance * 0.05)
+      return max(MaxGenerateEnergy - (distance * 0.02),0)
     }()
   }
 
@@ -250,6 +253,7 @@ class BreedCell: BaseCell {
   var childCells: [String: Cell]   = [:]
   weak var world: World!
   weak var life:  Life!
+  var cost: CGFloat = 0.2
 
   var property: BreedCellProperty!
 
@@ -261,7 +265,7 @@ class BreedCell: BaseCell {
     init(with code: [UInt8]) {
       self.childLifeInitialEnergy = CGFloat(code[5])
       self.childLifeVelocityRotation = CGFloat(code[6])
-      self.childLifeVelocityPower = CGFloat(code[7])
+      self.childLifeVelocityPower = CGFloat(code[7]) * 10
     }
   }
 
