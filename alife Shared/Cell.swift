@@ -180,6 +180,7 @@ extension Cell {
 
 class CoreStatus {
   static var MaxGrowthLimit = 6
+  var code:                   [UInt8]
   var growthCount:            Int = 0
   var genePosition:           Int
   var growthLimit:            Int
@@ -187,6 +188,7 @@ class CoreStatus {
   var childCellInitialEnergy: CGFloat
 
   init(with geneCode: [UInt8]) {
+    self.code = geneCode
     self.genePosition = Int(geneCode[1])
     self.growthLimit = Int(geneCode[2]) % (CoreStatus.MaxGrowthLimit + 1)
     self.growthRotation = CGFloat(geneCode[3])
@@ -292,7 +294,7 @@ class BreedCell: BaseCell {
 
   func work() {
     if self.property == nil {
-      property = BreedCellProperty(with: life.gene.code)
+      property = BreedCellProperty(with: coreStatus.code)
     }
     if energy > property.childLifeInitialEnergy + GreenCell.growthEnergy + cost {
       // 子供つくる
