@@ -302,19 +302,20 @@ class Gene {
   }
   static var sampleCode: [UInt8] = [
     // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,分裂細胞の初期エネルギー
-    1, 1, 6, 3, 10, 10, 10, 100, 0, 0, // rootCell
-    0, 7, 1, 3, 10, 10, 10, 100, 0, 0, // rootCell.child[0] == Cell[1]
-    0, 7, 1, 3, 10, 10, 10, 100, 0, 0, // rootCell.child[1]
-    0, 7, 1, 3, 10, 10, 10, 100, 0, 0, // rootCell.child[2]
-    0, 7, 1, 3, 10, 10, 10, 100, 0, 0, // rootCell.child[3]
-    0, 7, 1, 3, 10, 10, 10, 100, 0, 0, // rootCell.child[4]
-    0, 7, 1, 3, 10, 10, 10, 100, 0, 0, // rootCell.child[5]
-    2, 0, 0, 3, 10, 10, 10, 100, 0, 0, // Cell[1].child[0]
-    0, 0, 0, 3, 10, 10, 10, 100, 0, 0, // Cell[1].child[1]
-    0, 0, 0, 3, 10, 10, 10, 100, 0, 0, // Cell[1].child[2]
-    0, 0, 0, 3, 10, 10, 10, 100, 0, 0, // Cell[1].child[3]
-    0, 0, 0, 3, 10, 10, 10, 100, 0, 0, // Cell[1].child[4]
-    0, 0, 0, 3, 10, 10, 10, 100, 0, 0, // Cell[1].child[5]
+    // ,Breed:子供の初期エネルギー,子供の射出方向,子供の射出威力
+    1, 1, 6, 3, 10, 0, 10, 100, 0, 0, // rootCell
+    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[0] == Cell[1]
+    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[1]
+    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[2]
+    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[3]
+    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[4]
+    0, 7, 1, 3, 10, 0, 10, 100, 0, 0, // rootCell.child[5]
+    2, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[0]
+    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[1]
+    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[2]
+    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[3]
+    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[4]
+    0, 0, 0, 3, 10, 0, 10, 100, 0, 0, // Cell[1].child[5]
   ]
   var code: [UInt8]
 
@@ -322,7 +323,7 @@ class Gene {
     self.code = code
   }
 
-  var lifespan = 80
+  var lifespan = 100
   var ticket   = 0
   var alive:     Bool {
     return ticket < lifespan
