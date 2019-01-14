@@ -54,12 +54,28 @@ struct PhysicsCategory {
 
 class World: SKScene {
   var lives: [String: Life] = [:]
-
   class Sun {
+    var node:SKShapeNode? = nil
+    var tick:CGFloat = 0
     var position: CGPoint = CGPoint.zero
+    var world:World
+    init(world:World) {
+      self.world = world
+    }
+    func update(){
+      tick += 1
+      power = max(sin(2 * CGFloat.pi * tick / 100) / 2 * 0.30 + 0.7, 0)
+
+      let x = 20 * (20 * power - 3)
+      self.node?.removeFromParent()
+      self.node = SKShapeNode(circleOfRadius: x)
+      node?.strokeColor = SCNColor.yellow
+      world.addChild(node!)
+    }
+    var power:CGFloat = 0
   }
 
-  var sun = Sun()
+  var sun: Sun!
   var hudNode: SCNNode {
     let plane    = SCNPlane(width: 5, height: 5)
     let material = SCNMaterial()
@@ -85,6 +101,8 @@ class World: SKScene {
 
     // DEBUG
     physicsWorld.gravity = CGVector.zero
+
+    self.sun = Sun(world: self)
 
     let cell = GreenCell.init(circleOfRadius: cellRadius)
     let life = Life(world: self, cell: cell, gene: Gene(code: Gene.sampleCode))
@@ -116,6 +134,7 @@ class World: SKScene {
     last = currentTime
 
     lives.forEach({ $0.value.update(currentTime) })
+    sun.update()
   }
 }
 

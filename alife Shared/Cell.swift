@@ -236,7 +236,7 @@ class GreenCell: SKShapeNode, Cell {
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return max(MaxGenerateEnergy - (distance * 0.1), 0)
+      return max(MaxGenerateEnergy * world.sun.power - (distance * 0.05), 0)
     }()
   }
 
@@ -300,6 +300,7 @@ class BreedCell: BaseCell {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
       let life = Life.init(world: self.world, cell: cell, gene: Gene(code: self.life.gene.mutatedCode))
+      print(self.life.gene.code)
       cell.position = position
       cell.energy = property.childLifeInitialEnergy
       energy -= property.childLifeInitialEnergy + GreenCell.growthEnergy
@@ -327,7 +328,7 @@ class Gene {
     // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,分裂細胞の初期エネルギー
     // ,Breed:子供の初期エネルギー,子供の射出方向,子供の射出威力
     1, 1, 6, 3, 10, 0, 11, 100, 0, 0, // rootCell
-    0, 7, 1, 3, 10, 0, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
+    3, 7, 1, 3, 10, 0, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
     0, 7, 1, 3, 10, 0, 13, 100, 0, 0, // rootCell.child[1]
     0, 7, 1, 3, 10, 0, 14, 100, 0, 0, // rootCell.child[2]
     0, 7, 1, 3, 10, 0, 15, 100, 0, 0, // rootCell.child[3]
