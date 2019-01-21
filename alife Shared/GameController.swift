@@ -62,17 +62,20 @@ class World: SKScene {
     init(world:World) {
       self.world = world
     }
+    let IGNORE_WINTER = true
     func update(){
-      tick += 1
-      power = max(sin(2 * CGFloat.pi * tick / 100) / 2 * 0.30 + 0.7, 0)
+      if !IGNORE_WINTER {
+        tick += 1
+        power = max(sin(2 * CGFloat.pi * tick / 100) / 2 * 0.30 + 0.7, 0)
 
-      let x = 20 * (20 * power - 3)
-      self.node?.removeFromParent()
-      self.node = SKShapeNode(circleOfRadius: x)
-      node?.strokeColor = SCNColor.yellow
-      world.addChild(node!)
+        let x = 20 * (20 * power - 3)
+        self.node?.removeFromParent()
+        self.node = SKShapeNode(circleOfRadius: x)
+        node?.strokeColor = SCNColor.yellow
+        world.addChild(node!)
+      } 
     }
-    var power:CGFloat = 0
+    var power:CGFloat = 1
   }
 
   var sun: Sun!

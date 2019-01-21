@@ -151,7 +151,7 @@ extension Cell {
       return
     }
     guard let childCell = { () -> Cell? in
-      switch code[0] % 4 {
+      switch code[0] % 5 {
       case 0:
         return WallCell.init(circleOfRadius: cellRadius)
       case 1:
@@ -160,6 +160,8 @@ extension Cell {
         return BreedCell.init(circleOfRadius: cellRadius)
       case 3:
         return TankCell.init(circleOfRadius: cellRadius)
+      case 4:
+        return FootCell.init(circleOfRadius: cellRadius)
       default:
         return nil
       }
@@ -242,7 +244,43 @@ class GreenCell: SKShapeNode, Cell {
 
 }
 
-class FootCell {
+class FootCell:BaseCell {
+  var death: (() -> ())!
+
+  static var color = SCNColor.blue
+  var coreStatus: CoreStatus!
+  static let growthEnergy: CGFloat = 10
+  var joints:     [SKPhysicsJoint] = []
+  var energy:     CGFloat          = 0
+  var childCells: [String: Cell]   = [:]
+  weak var world: World!
+  weak var life:  Life!
+  var cost:               CGFloat = 1
+  var energyMoveCapacity: CGFloat = 5
+
+  var property: CellProperty!
+  class CellProperty {
+    var velocityRotation: CGFloat
+    var velocityPower:    CGFloat
+
+    init(with code: [UInt8]) {
+      self.velocityRotation = CGFloat(code[5])
+      self.velocityPower = CGFloat(code[6])
+    }
+  }
+  func work() {
+    if self.property == nil {
+      property = CellProperty(with: coreStatus.code)
+    }
+    if energy > self.property.velocityPower / 10 + cost {
+      energy -= property.velocityPower / 10
+      let velocity: CGFloat = property.velocityPower
+      let rotate:   CGFloat = property.velocityRotation
+
+      let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: velocity)
+      physicsBody!.velocity = CGVector.init(dx: rotatedPoint.x, dy: rotatedPoint.y)
+    }
+  }
 
 }
 
@@ -327,8 +365,9 @@ class Gene {
   static var sampleCode: [UInt8] = [
     // Cellの種類,分裂セルのGene参照先,分裂数,分裂方向,分裂細胞の初期エネルギー
     // ,Breed:子供の初期エネルギー,子供の射出方向,子供の射出威力
+    // ,Foot:移動方向,移動の出力
     1, 1, 6, 3, 10, 0, 11, 100, 0, 0, // rootCell
-    3, 7, 1, 3, 10, 0, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
+    4, 7, 1, 3, 10, 0, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
     0, 7, 1, 3, 10, 0, 13, 100, 0, 0, // rootCell.child[1]
     0, 7, 1, 3, 10, 0, 14, 100, 0, 0, // rootCell.child[2]
     0, 7, 1, 3, 10, 0, 15, 100, 0, 0, // rootCell.child[3]
