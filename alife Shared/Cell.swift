@@ -326,7 +326,7 @@ class BreedCell: BaseCell {
     init(with code: [UInt8]) {
       self.childLifeInitialEnergy = CGFloat(code[5])
       self.childLifeVelocityRotation = CGFloat(code[6])
-      self.childLifeVelocityPower = CGFloat(code[7]) * 10
+      self.childLifeVelocityPower = CGFloat(code[7])
     }
   }
 
@@ -349,6 +349,7 @@ class BreedCell: BaseCell {
 
       let rotatedPoint = adjustRotatedPoint(rotate: rotate, distance: velocity)
       cell.physicsBody!.velocity = CGVector.init(dx: rotatedPoint.x, dy: rotatedPoint.y)
+      
 
     }
   }
