@@ -35,6 +35,7 @@ protocol Cell: class {
   func work()
   func nextGrowth()
   var death: (() -> ())! { get set }
+  func eat()
 }
 
 extension Cell {
@@ -141,6 +142,10 @@ extension Cell {
     joints.removeAll()
     removeFromParent()
     life.cells.removeValue(forKey: name!)
+  }
+
+  func eat() {
+    self.life.resource += 1
   }
 }
 
@@ -425,7 +430,7 @@ class Life {
   unowned let world: World
   let name:     String
   var rootCell: Cell
-  let resource = 0
+  var resource = 0
 
   init(world: World, cell: Cell, gene: Gene) {
     self.world = world

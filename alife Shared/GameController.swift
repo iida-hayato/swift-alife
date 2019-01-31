@@ -123,18 +123,8 @@ class World: SKScene {
 
     appendLife(life: life, cell: cell)
 
-    class Soil: SKShapeNode {
 
-      func setup() -> Soil {
-        fillColor = SCNColor.white
-        physicsBody = SKPhysicsBody.init(circleOfRadius: cellRadius)
-        physicsBody!.categoryBitMask = PhysicsCategory.Soil
-        physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
-
-        return self
-      }
-    }
-
+    self.physicsWorld.contactDelegate = self
     // resourceNode
     let maxX = 20
     let maxY = 20
@@ -154,7 +144,8 @@ class World: SKScene {
   }
 
   func appendLife(life: Life, cell: Cell) {
-    cell.setup(with: self, life: life, coreStatus: CoreStatus(with: life.gene.code)) {}
+    cell.setup(with: self, life: life, coreStatus: CoreStatus(with: life.gene.code)) {
+    }
 
     lives[life.name] = life
     addChild(cell as! BaseCell)
@@ -171,10 +162,52 @@ class World: SKScene {
 
     last = currentTime
 
-    lives.forEach({ $0.value.update(currentTime) })
+    lives.forEach({
+      $0.value.update(currentTime)
+    })
     sun.update()
   }
 }
 
 var last:     TimeInterval?
 let interval: TimeInterval = 0.1
+
+class Soil: SKShapeNode {
+
+  func setup() -> Soil {
+    fillColor = SCNColor.white
+    physicsBody = SKPhysicsBody.init(circleOfRadius: cellRadius)
+    physicsBody!.categoryBitMask = PhysicsCategory.Soil
+    physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
+    physicsBody!.contactTestBitMask = PhysicsCategory.Cell
+
+    return self
+  }
+}
+
+extension World: SKPhysicsContactDelegate {
+  // 衝突したとき。
+  func didBegin(_ contact: SKPhysicsContact) {
+
+    var firstBody, secondBody: SKPhysicsBody
+
+    // firstを赤、secondを緑とする。
+    if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+      firstBody = contact.bodyA
+      secondBody = contact.bodyB
+    } else {
+      firstBody = contact.bodyB
+      secondBody = contact.bodyA
+    }
+
+    if firstBody.categoryBitMask & PhysicsCategory.Cell != 0 &&
+       secondBody.categoryBitMask & PhysicsCategory.Soil != 0 {
+      if let cell = firstBody as? Cell {
+        cell.eat()
+      }
+      secondBody.node?.removeFromParent()
+    }
+  }
+
+  func didEnd(_ contact: SKPhysicsContact) {}
+}
