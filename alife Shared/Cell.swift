@@ -138,6 +138,9 @@ extension Cell {
 
   func kill() {
     death()
+    let soil  = Soil(circleOfRadius: cellRadius).setup()
+    soil.position = self.position
+    self.world.addChild(soil)
 
     joints.forEach { self.world.physicsWorld.remove($0) }
     joints.removeAll()
