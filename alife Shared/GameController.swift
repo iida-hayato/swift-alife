@@ -66,10 +66,10 @@ class World: SKScene {
       self.world = world
     }
 
-    let IGNORE_WINTER = true
+    let _WINTER = true
 
     func update() {
-      if !IGNORE_WINTER {
+      if _WINTER {
         tick += 1
         power = max(sin(2 * CGFloat.pi * tick / 100) / 2 * 0.30 + 0.7, 0)
 
