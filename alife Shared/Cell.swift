@@ -35,6 +35,7 @@ protocol Cell: class {
   func work()
   func nextGrowth()
   var death: (() -> ())! { get set }
+  func eat()
 }
 
 extension Cell {
@@ -86,7 +87,7 @@ extension Cell {
       guard abs(delta) > 1 + moveCost else {
         return
       }
-      let moveValue          = delta / 2
+      let moveValue = delta / 2
       if moveValue > 0 {
         self.energy -= min(moveValue, $0.value.energyMoveCapacity) + moveCost
         $0.value.energy += min(moveValue, $0.value.energyMoveCapacity)
@@ -103,9 +104,10 @@ extension Cell {
     nextGrowth()
     self.coreStatus.growthCount += 1
     energy -= Self.growthEnergy + self.coreStatus.childCellInitialEnergy
+    self.life.resource -= 1
   }
 
-  private func canGrowth() -> Bool { return life.gene.canGrowth && energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive }
+  private func canGrowth() -> Bool { return life.gene.canGrowth && energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive && self.life.resource > 0 }
 
   func adjustRotatedPoint(rotate: CGFloat, distance: CGFloat = 1, baseRadian: CGFloat = CGFloat.pi / 3) -> CGPoint {
     let radian = radianBetween(from: self.position, to: world.sun.position)
@@ -136,11 +138,18 @@ extension Cell {
 
   func kill() {
     death()
+    let soil  = Soil(circleOfRadius: cellRadius).setup()
+    soil.position = self.position
+    self.world.addChild(soil)
 
     joints.forEach { self.world.physicsWorld.remove($0) }
     joints.removeAll()
     removeFromParent()
     life.cells.removeValue(forKey: name!)
+  }
+
+  func eat() {
+    self.life.resource += 1
   }
 }
 
@@ -238,13 +247,15 @@ class GreenCell: SKShapeNode, Cell {
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return max(MaxGenerateEnergy * world.sun.power - (distance * 0.05), 0)
+//      return max(MaxGenerateEnergy * world.sun.power - (distance * 0.05), 0)
+      return MaxGenerateEnergy
+
     }()
   }
 
 }
 
-class FootCell:BaseCell {
+class FootCell: BaseCell {
   var death: (() -> ())!
 
   static var color = SCNColor.blue
@@ -259,6 +270,7 @@ class FootCell:BaseCell {
   var energyMoveCapacity: CGFloat = 5
 
   var property: CellProperty!
+
   class CellProperty {
     var velocityRotation: CGFloat
     var velocityPower:    CGFloat
@@ -268,6 +280,7 @@ class FootCell:BaseCell {
       self.velocityPower = CGFloat(code[6])
     }
   }
+
   func work() {
     if self.property == nil {
       property = CellProperty(with: coreStatus.code)
@@ -334,7 +347,7 @@ class BreedCell: BaseCell {
     if self.property == nil {
       property = BreedCellProperty(with: coreStatus.code)
     }
-    if energy > property.childLifeInitialEnergy + GreenCell.growthEnergy + cost {
+    if canBreed() {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
       let life = Life.init(world: self.world, cell: cell, gene: Gene(code: self.life.gene.mutatedCode))
@@ -343,6 +356,8 @@ class BreedCell: BaseCell {
       cell.energy = property.childLifeInitialEnergy
       energy -= property.childLifeInitialEnergy + GreenCell.growthEnergy
       world.appendLife(life: life, cell: cell)
+      cell.life.resource += breedResource
+      self.life.resource -= breedResource + 1
 
       let velocity: CGFloat = property.childLifeVelocityPower
       let rotate:   CGFloat = property.childLifeVelocityRotation
@@ -352,6 +367,10 @@ class BreedCell: BaseCell {
 
     }
   }
+
+  let breedResource = 2
+
+  private func canBreed() -> Bool { return energy > property.childLifeInitialEnergy + GreenCell.growthEnergy + cost && self.life.resource > breedResource + 1 }
 }
 
 class Gene {
@@ -367,12 +386,12 @@ class Gene {
     // ,Breed:子供の初期エネルギー,子供の射出方向,子供の射出威力
     // ,Foot:移動方向,移動の出力
     1, 1, 6, 3, 10, 0, 11, 100, 0, 0, // rootCell
-    4, 7, 1, 3, 10, 0, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
+    4, 7, 1, 3, 10, 3, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
     0, 7, 1, 3, 10, 0, 13, 100, 0, 0, // rootCell.child[1]
     0, 7, 1, 3, 10, 0, 14, 100, 0, 0, // rootCell.child[2]
     0, 7, 1, 3, 10, 0, 15, 100, 0, 0, // rootCell.child[3]
     0, 7, 1, 3, 10, 0, 16, 100, 0, 0, // rootCell.child[4]
-    3, 7, 1, 3, 10, 0, 17, 100, 0, 0, // rootCell.child[5]
+    0, 7, 1, 3, 10, 0, 17, 100, 0, 0, // rootCell.child[5]
     2, 0, 0, 3, 10, 0, 18, 10, 0, 0, // Cell[1].child[0]
     0, 0, 0, 3, 10, 0, 19, 100, 0, 0, // Cell[1].child[1]
     0, 0, 0, 3, 10, 0, 20, 100, 0, 0, // Cell[1].child[2]
@@ -423,6 +442,7 @@ class Life {
   unowned let world: World
   let name:     String
   var rootCell: Cell
+  var resource = 0
 
   init(world: World, cell: Cell, gene: Gene) {
     self.world = world
