@@ -136,8 +136,18 @@ class World: SKScene {
     }
 
     // resourceNode
-    let soil = Soil(circleOfRadius: cellRadius).setup()
-    self.addChild(soil)
+    let maxX = 20
+    let maxY = 20
+    for i in 0..<(maxX * maxY) {
+      let soil  = Soil(circleOfRadius: cellRadius).setup()
+      let range = 50
+      let x     = Int(i / maxX) - Int(maxX / 2)
+      let y     = Int(i % maxY) - Int(maxY / 2)
+
+      soil.position = CGPoint(x: x * range, y: y * range)
+      self.addChild(soil)
+
+    }
 
 
     isPaused = false
