@@ -247,7 +247,9 @@ class GreenCell: SKShapeNode, Cell {
       if distance <= 1 {
         return MaxGenerateEnergy
       }
-      return max(MaxGenerateEnergy * world.sun.power - (distance * 0.05), 0)
+//      return max(MaxGenerateEnergy * world.sun.power - (distance * 0.05), 0)
+      return MaxGenerateEnergy
+
     }()
   }
 
@@ -366,7 +368,7 @@ class BreedCell: BaseCell {
     }
   }
 
-  let breedResource = 10
+  let breedResource = 2
 
   private func canBreed() -> Bool { return energy > property.childLifeInitialEnergy + GreenCell.growthEnergy + cost && self.life.resource > breedResource + 1 }
 }
@@ -384,12 +386,12 @@ class Gene {
     // ,Breed:子供の初期エネルギー,子供の射出方向,子供の射出威力
     // ,Foot:移動方向,移動の出力
     1, 1, 6, 3, 10, 0, 11, 100, 0, 0, // rootCell
-    4, 7, 1, 3, 10, 0, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
+    4, 7, 1, 3, 10, 3, 12, 100, 0, 0, // rootCell.child[0] == Cell[1]
     0, 7, 1, 3, 10, 0, 13, 100, 0, 0, // rootCell.child[1]
     0, 7, 1, 3, 10, 0, 14, 100, 0, 0, // rootCell.child[2]
     0, 7, 1, 3, 10, 0, 15, 100, 0, 0, // rootCell.child[3]
     0, 7, 1, 3, 10, 0, 16, 100, 0, 0, // rootCell.child[4]
-    3, 7, 1, 3, 10, 0, 17, 100, 0, 0, // rootCell.child[5]
+    0, 7, 1, 3, 10, 0, 17, 100, 0, 0, // rootCell.child[5]
     2, 0, 0, 3, 10, 0, 18, 10, 0, 0, // Cell[1].child[0]
     0, 0, 0, 3, 10, 0, 19, 100, 0, 0, // Cell[1].child[1]
     0, 0, 0, 3, 10, 0, 20, 100, 0, 0, // Cell[1].child[2]
