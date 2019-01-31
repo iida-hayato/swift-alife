@@ -50,20 +50,25 @@ struct PhysicsCategory {
   static let Edge: UInt32 = 0b1    //  1
   static let Bone: UInt32 = 0b10   //  2
   static let Cell: UInt32 = 0b100  //  4
+  static let Soil: UInt32 = 0b1000  //  8
 }
 
 class World: SKScene {
   var lives: [String: Life] = [:]
+
   class Sun {
-    var node:SKShapeNode? = nil
-    var tick:CGFloat = 0
-    var position: CGPoint = CGPoint.zero
-    var world:World
-    init(world:World) {
+    var node:     SKShapeNode? = nil
+    var tick:     CGFloat      = 0
+    var position: CGPoint      = CGPoint.zero
+    var world:    World
+
+    init(world: World) {
       self.world = world
     }
+
     let IGNORE_WINTER = true
-    func update(){
+
+    func update() {
       if !IGNORE_WINTER {
         tick += 1
         power = max(sin(2 * CGFloat.pi * tick / 100) / 2 * 0.30 + 0.7, 0)
@@ -73,12 +78,13 @@ class World: SKScene {
         self.node = SKShapeNode(circleOfRadius: x)
         node?.strokeColor = SCNColor.yellow
         world.addChild(node!)
-      } 
+      }
     }
-    var power:CGFloat = 1
+
+    var power: CGFloat = 1
   }
 
-  var sun: Sun!
+  var sun:     Sun!
   var hudNode: SCNNode {
     let plane    = SCNPlane(width: 5, height: 5)
     let material = SCNMaterial()
@@ -105,8 +111,10 @@ class World: SKScene {
     // DEBUG
     physicsWorld.gravity = CGVector.zero
 
+    // Sun
     self.sun = Sun(world: self)
 
+    // first life
     let cell = GreenCell.init(circleOfRadius: cellRadius)
     let life = Life(world: self, cell: cell, gene: Gene(code: Gene.sampleCode))
 
@@ -114,6 +122,23 @@ class World: SKScene {
     cell.energy = 1
 
     appendLife(life: life, cell: cell)
+
+    class Soil: SKShapeNode {
+
+      func setup() -> Soil {
+        fillColor = SCNColor.white
+        physicsBody = SKPhysicsBody.init(circleOfRadius: cellRadius)
+        physicsBody!.categoryBitMask = PhysicsCategory.Soil
+        physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Cell
+
+        return self
+      }
+    }
+
+    // resourceNode
+    let soil = Soil(circleOfRadius: cellRadius).setup()
+    self.addChild(soil)
+
 
     isPaused = false
   }

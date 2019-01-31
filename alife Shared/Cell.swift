@@ -86,7 +86,7 @@ extension Cell {
       guard abs(delta) > 1 + moveCost else {
         return
       }
-      let moveValue          = delta / 2
+      let moveValue = delta / 2
       if moveValue > 0 {
         self.energy -= min(moveValue, $0.value.energyMoveCapacity) + moveCost
         $0.value.energy += min(moveValue, $0.value.energyMoveCapacity)
@@ -244,7 +244,7 @@ class GreenCell: SKShapeNode, Cell {
 
 }
 
-class FootCell:BaseCell {
+class FootCell: BaseCell {
   var death: (() -> ())!
 
   static var color = SCNColor.blue
@@ -259,6 +259,7 @@ class FootCell:BaseCell {
   var energyMoveCapacity: CGFloat = 5
 
   var property: CellProperty!
+
   class CellProperty {
     var velocityRotation: CGFloat
     var velocityPower:    CGFloat
@@ -268,6 +269,7 @@ class FootCell:BaseCell {
       self.velocityPower = CGFloat(code[6])
     }
   }
+
   func work() {
     if self.property == nil {
       property = CellProperty(with: coreStatus.code)
@@ -423,6 +425,7 @@ class Life {
   unowned let world: World
   let name:     String
   var rootCell: Cell
+  let resource = 0
 
   init(world: World, cell: Cell, gene: Gene) {
     self.world = world
