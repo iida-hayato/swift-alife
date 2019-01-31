@@ -104,9 +104,10 @@ extension Cell {
     nextGrowth()
     self.coreStatus.growthCount += 1
     energy -= Self.growthEnergy + self.coreStatus.childCellInitialEnergy
+    self.life.resource -= 1
   }
 
-  private func canGrowth() -> Bool { return life.gene.canGrowth && energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive }
+  private func canGrowth() -> Bool { return life.gene.canGrowth && energy >= Self.growthEnergy + self.coreStatus.childCellInitialEnergy && self.coreStatus.growthCount < self.coreStatus.growthLimit && life.gene.alive && self.life.resource > 0 }
 
   func adjustRotatedPoint(rotate: CGFloat, distance: CGFloat = 1, baseRadian: CGFloat = CGFloat.pi / 3) -> CGPoint {
     let radian = radianBetween(from: self.position, to: world.sun.position)
@@ -341,7 +342,7 @@ class BreedCell: BaseCell {
     if self.property == nil {
       property = BreedCellProperty(with: coreStatus.code)
     }
-    if energy > property.childLifeInitialEnergy + GreenCell.growthEnergy + cost {
+    if canBreed() {
       // 子供つくる
       let cell = GreenCell.init(circleOfRadius: cellRadius)
       let life = Life.init(world: self.world, cell: cell, gene: Gene(code: self.life.gene.mutatedCode))
@@ -350,6 +351,8 @@ class BreedCell: BaseCell {
       cell.energy = property.childLifeInitialEnergy
       energy -= property.childLifeInitialEnergy + GreenCell.growthEnergy
       world.appendLife(life: life, cell: cell)
+      cell.life.resource += breedResource
+      self.life.resource -= breedResource + 1
 
       let velocity: CGFloat = property.childLifeVelocityPower
       let rotate:   CGFloat = property.childLifeVelocityRotation
@@ -359,6 +362,10 @@ class BreedCell: BaseCell {
 
     }
   }
+
+  let breedResource = 10
+
+  private func canBreed() -> Bool { return energy > property.childLifeInitialEnergy + GreenCell.growthEnergy + cost && self.life.resource > breedResource + 1 }
 }
 
 class Gene {

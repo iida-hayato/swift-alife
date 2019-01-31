@@ -120,6 +120,7 @@ class World: SKScene {
 
     cell.position = CGPoint.zero
     cell.energy = 1
+    life.resource = 10
 
     appendLife(life: life, cell: cell)
 
