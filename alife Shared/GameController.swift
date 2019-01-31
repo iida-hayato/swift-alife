@@ -202,7 +202,7 @@ extension World: SKPhysicsContactDelegate {
 
     if firstBody.categoryBitMask & PhysicsCategory.Cell != 0 &&
        secondBody.categoryBitMask & PhysicsCategory.Soil != 0 {
-      if let cell = firstBody as? Cell {
+      if let cell = firstBody.node as? Cell {
         cell.eat()
       }
       secondBody.node?.removeFromParent()
