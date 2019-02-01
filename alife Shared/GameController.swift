@@ -66,7 +66,7 @@ class World: SKScene {
       self.world = world
     }
 
-    let _WINTER = true
+    let _WINTER = false
 
     func update() {
       if _WINTER {
